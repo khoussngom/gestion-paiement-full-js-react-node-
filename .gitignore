@@ -137,3 +137,83 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+package-lock.json
+.vscode
+.env
+
+# ========================================
+# Ajouts spécifiques au projet
+# ========================================
+
+# Fichiers de base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs spécifiques au projet
+backend.log
+frontend.log
+server.log
+*.log
+
+# Build directories
+/backend/dist
+/backend/build
+/frontend/build
+/frontend/dist
+
+# Prisma
+/backend/prisma/dev.db
+/backend/prisma/dev.db-journal
+/backend/prisma/.env
+
+# Uploads et fichiers temporaires
+/uploads
+/temp
+/tmp
+
+# Certificats SSL
+*.pem
+*.key
+*.crt
+
+# Sauvegardes
+*.backup
+*.bak
+
+# Fichiers de configuration locaux
+config.local.js
+config.local.json
+
+# Tests
+coverage/
+.nyc_output/
+test-results/
+
+# Docker
+docker-compose.override.yml
+Dockerfile.local
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific files
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.orig
+*.rej
+
+# Runtime files
+*.pid
+nohup.out
