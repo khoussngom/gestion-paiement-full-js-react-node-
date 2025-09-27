@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TypeContrat {
+  JOURNALIER
+  SALAIRE_FIXE
+  HONORAIRE
+}
+
+enum RoleUtilisateur {
+  SUPER_ADMIN
+  ADMIN
+  CAISSIER
+}
+
+enum StatutCyclePaie {
+  BROUILLON
+  APPROUVE
+  CLOTURE
+}
+
+enum StatutBulletinPaie {
+  EN_ATTENTE
+  PARTIEL
+  PAYE
+}
+
+enum ModePaiement {
+  ESPECES
+  VIREMENT_BANCAIRE
+  ORANGE_MONEY
+  WAVE
+  AUTRE
+}
+
+model Entreprise {
+  id                String   @id @default(cuid())
+  nom               String
+  adresse          String?
+  telephone        String?
+  email            String?
+  logo             String?
+  devise           String   @default("FCFA")
+  typePeriode      String   @default("MENSUEL") // MENSUEL, HEBDOMADAIRE, JOURNALIER
+  dateCreation     DateTime @default(now())
+  dateModification DateTime @updatedAt
+  actif            Boolean  @default(true)
+
+  // Relations
+  utilisateurs   Utilisateur[]
+  employes       Employe[]
+  cyclesPaie     CyclePaie[]
+  bulletinsPaie  BulletinPaie[]
+  paiements      Paiement[]
+
+  @@map("entreprises")
+}
+
+model Utilisateur {
+  id                String          @id @default(cuid())
+  nom               String
+  prenom            String
+  email             String          @unique
+  motDePasse        String
+  role              RoleUtilisateur
+  entrepriseId      String?
+  dateCreation      DateTime        @default(now())
+  dateModification  DateTime        @updatedAt
+  actif             Boolean         @default(true)
+
+  // Relations
+  entreprise        Entreprise?     @relation(fields: [entrepriseId], references: [id])
+  paiementsEffectues Paiement[]
+
+  @@map("utilisateurs")
+}
+
+model Employe {
+  id                    String      @id @default(cuid())
+  nomComplet            String
+  poste                 String
+  typeContrat           TypeContrat
+  tauxSalaireHoraire    Decimal?
+  salaireFixe           Decimal?
+  tauxHonoraire         Decimal?
+  coordonneesBancaires  String?
+  telephone             String?
+  email                 String?
+  adresse               String?
+  entrepriseId          String
+  dateEmbauche          DateTime
+  dateCreation          DateTime    @default(now())
+  dateModification      DateTime    @updatedAt
+  actif                 Boolean     @default(true)
+
+  // Relations
+  entreprise            Entreprise  @relation(fields: [entrepriseId], references: [id])
+  bulletinsPaie         BulletinPaie[]
+  paiements             Paiement[]
+
+  @@map("employes")
+}
+
+model CyclePaie {
+  id                String           @id @default(cuid())
+  nom               String
+  dateDebut         DateTime
+  dateFin           DateTime
+  statut            StatutCyclePaie  @default(BROUILLON)
+  entrepriseId      String
+  dateCreation      DateTime         @default(now())
+  dateModification  DateTime         @updatedAt
+
+  // Relations
+  entreprise        Entreprise       @relation(fields: [entrepriseId], references: [id])
+  bulletinsPaie     BulletinPaie[]
+
+  @@map("cycles_paie")
+}
+
+model BulletinPaie {
+  id                String             @id @default(cuid())
+  employeId         String
+  cycleId           String
+  entrepriseId      String
+  salaireBrut       Decimal
+  deductions        Decimal            @default(0)
+  salaireNet        Decimal
+  joursTravailles   Int?               // Pour les journaliers
+  heuresTravailleurs Int?              // Pour les horaires
+  statut            StatutBulletinPaie @default(EN_ATTENTE)
+  dateCreation      DateTime           @default(now())
+  dateModification  DateTime           @updatedAt
+
+  // Relations
+  employe           Employe            @relation(fields: [employeId], references: [id])
+  cyclePaie         CyclePaie          @relation(fields: [cycleId], references: [id])
+  entreprise        Entreprise         @relation(fields: [entrepriseId], references: [id])
+  paiements         Paiement[]
+
+  @@unique([employeId, cycleId])
+  @@map("bulletins_paie")
+}
+
+model Paiement {
+  id                String        @id @default(cuid())
+  bulletinPaieId    String
+  employeId         String
+  entrepriseId      String
+  utilisateurId     String
+  montant           Decimal
+  modePaiement      ModePaiement
+  reference         String?
+  notes             String?
+  datePaiement      DateTime      @default(now())
+  dateCreation      DateTime      @default(now())
+
+  // Relations
+  bulletinPaie      BulletinPaie  @relation(fields: [bulletinPaieId], references: [id])
+  employe           Employe       @relation(fields: [employeId], references: [id])
+  entreprise        Entreprise    @relation(fields: [entrepriseId], references: [id])
+  utilisateur       Utilisateur   @relation(fields: [utilisateurId], references: [id])
+
+  @@map("paiements")
+}

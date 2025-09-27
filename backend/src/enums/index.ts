@@ -1,0 +1,37 @@
+export enum TypeContrat {
+  JOURNALIER = 'JOURNALIER',
+  SALAIRE_FIXE = 'SALAIRE_FIXE',
+  HONORAIRE = 'HONORAIRE'
+}
+
+export enum RoleUtilisateur {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  CAISSIER = 'CAISSIER'
+}
+
+export enum StatutCyclePaie {
+  BROUILLON = 'BROUILLON',
+  APPROUVE = 'APPROUVE',
+  CLOTURE = 'CLOTURE'
+}
+
+export enum StatutBulletinPaie {
+  EN_ATTENTE = 'EN_ATTENTE',
+  PARTIEL = 'PARTIEL',
+  PAYE = 'PAYE'
+}
+
+export enum ModePaiement {
+  ESPECES = 'ESPECES',
+  VIREMENT_BANCAIRE = 'VIREMENT_BANCAIRE',
+  ORANGE_MONEY = 'ORANGE_MONEY',
+  WAVE = 'WAVE',
+  AUTRE = 'AUTRE'
+}
+
+export enum TypePeriode {
+  MENSUEL = 'MENSUEL',
+  HEBDOMADAIRE = 'HEBDOMADAIRE',
+  JOURNALIER = 'JOURNALIER'
+}
