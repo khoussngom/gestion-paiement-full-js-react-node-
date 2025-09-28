@@ -169,7 +169,7 @@ export default function EmployeeModal({ isOpen, onClose, employee = null, onSucc
                   <Input
                     value={formData.telephone}
                     onChange={(e) => handleInputChange('telephone', e.target.value)}
-                    placeholder="+33 1 23 45 67 89"
+                    placeholder="+221 77 473 00 39"
                   />
                 </FormControl>
 

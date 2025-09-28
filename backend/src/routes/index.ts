@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import routeurAuthentification from './authentification';
-import routeurEmployes from './employes';
+import routeurAuthentification from './authentification_new';
+import routeurEmployes from './employes_new';
 import routeurCyclesPaie from './cyclesPaie';
-import routeurDashboard from './Dashboard';
+import routeurDashboard from './dashboard_clean';
 import routeurPaiements from './paiements';
 import { middlewareAuthentification } from '../middleware/authentification';
 
