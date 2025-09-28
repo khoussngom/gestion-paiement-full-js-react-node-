@@ -5,42 +5,38 @@ import Footer from 'components/footer/FooterAdmin.js';
 import Navbar from 'components/navbar/NavbarAdmin.js';
 import Sidebar from 'components/sidebar/Sidebar.js';
 import { SidebarContext } from 'contexts/SidebarContext';
-import React, { useState } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import routes from 'routes.js';
 
 // Custom Chakra theme
 export default function Dashboard(props) {
   const { ...rest } = props;
+  const location = useLocation();
   // states and functions
   const [fixed] = useState(false);
   const [toggleSidebar, setToggleSidebar] = useState(false);
+  const [pageTitle, setPageTitle] = useState('Tableau de Bord');
+
+  // Effet pour mettre à jour le titre de la page dynamiquement
+  useEffect(() => {
+    const currentRoute = routes.find(route => 
+      location.pathname.includes(route.path) && route.layout === '/admin'
+    );
+    
+    if (currentRoute) {
+      setPageTitle(currentRoute.name);
+      // Mettre à jour le titre du document
+      document.title = `${currentRoute.name} - Marakhib Global`;
+    } else {
+      setPageTitle('Tableau de Bord');
+      document.title = 'Tableau de Bord - Marakhib Global';
+    }
+  }, [location.pathname]);
+
   // functions for changing the states from components
   const getRoute = () => {
     return window.location.pathname !== '/admin/full-screen-maps';
-  };
-  const getActiveRoute = (routes) => {
-    let activeRoute = 'Default Brand Text';
-    for (let i = 0; i < routes.length; i++) {
-      if (routes[i].collapse) {
-        let collapseActiveRoute = getActiveRoute(routes[i].items);
-        if (collapseActiveRoute !== activeRoute) {
-          return collapseActiveRoute;
-        }
-      } else if (routes[i].category) {
-        let categoryActiveRoute = getActiveRoute(routes[i].items);
-        if (categoryActiveRoute !== activeRoute) {
-          return categoryActiveRoute;
-        }
-      } else {
-        if (
-          window.location.href.indexOf(routes[i].layout + routes[i].path) !== -1
-        ) {
-          return routes[i].name;
-        }
-      }
-    }
-    return activeRoute;
   };
   const getActiveNavbar = (routes) => {
     let activeNavbar = false;
@@ -134,7 +130,7 @@ export default function Dashboard(props) {
                 <Navbar
                   onOpen={onOpen}
                   logoText={'Marakhib-Global'}
-                  brandText={getActiveRoute(routes)}
+                  brandText={pageTitle}
                   secondary={getActiveNavbar(routes)}
                   message={getActiveNavbarText(routes)}
                   fixed={fixed}
