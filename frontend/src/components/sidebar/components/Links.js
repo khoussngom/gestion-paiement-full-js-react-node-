@@ -1,12 +1,14 @@
 /* eslint-disable */
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 // chakra imports
 import { Box, Flex, HStack, Text, useColorModeValue } from "@chakra-ui/react";
+import { useAuth } from "contexts/AuthContext";
 
 export function SidebarLinks(props) {
   //   Chakra color mode
   let location = useLocation();
+  let navigate = useNavigate();
   let activeColor = useColorModeValue("gray.700", "white");
   let inactiveColor = useColorModeValue(
     "secondaryGray.600",
@@ -17,6 +19,17 @@ export function SidebarLinks(props) {
   let brandColor = useColorModeValue("brand.500", "brand.400");
 
   const { routes } = props;
+  const { logout } = useAuth();
+
+  // Fonction pour gérer la déconnexion
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/auth/sign-in');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
 
   // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
@@ -51,6 +64,42 @@ export function SidebarLinks(props) {
         route.layout === "/auth" ||
         route.layout === "/rtl"
       ) {
+        // Gestion spéciale pour le bouton de déconnexion
+        if (route.action === 'logout') {
+          return (
+            <Box 
+              key={index} 
+              onClick={handleLogout}
+              cursor="pointer"
+              _hover={{ bg: 'gray.50' }}
+              borderRadius="md"
+            >
+              {route.icon ? (
+                <Box>
+                  <HStack
+                    spacing="26px"
+                    py='5px'
+                    ps='10px'>
+                    <Flex w='100%' alignItems='center' justifyContent='center'>
+                      <Box
+                        color={textColor}
+                        me='18px'>
+                        {route.icon}
+                      </Box>
+                      <Text
+                        me='auto'
+                        color={textColor}
+                        fontWeight="normal">
+                        {route.name}
+                      </Text>
+                    </Flex>
+                  </HStack>
+                </Box>
+              ) : null}
+            </Box>
+          );
+        }
+
         return (
           <NavLink key={index} to={route.layout + route.path}>
             {route.icon ? (

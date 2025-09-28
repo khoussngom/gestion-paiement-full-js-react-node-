@@ -4,7 +4,7 @@ import { Icon } from '@chakra-ui/react';
 import {
   MdPerson,
   MdHome,
-  MdLock,
+  MdLogout,
   MdWork,
   MdAttachMoney,
 } from 'react-icons/md';
@@ -15,9 +15,6 @@ import Employees from 'views/admin/employees';
 import PayrollCycles from 'views/admin/payrollCycles';
 import Payments from 'views/admin/payments';
 import Profile from 'views/admin/profile';
-
-// Auth Imports
-import SignIn from 'views/auth/signIn/SignIn';
 
 const routes = [
   {
@@ -56,11 +53,11 @@ const routes = [
     component: <Profile />,
   },
   {
-    name: 'Sign In',
-    layout: '/auth',
-    path: '/sign-in',
-    icon: <Icon as={MdLock} width="20px" height="20px" color="inherit" />,
-    component: <SignIn />,
+    name: 'Déconnexion',
+    layout: '/admin',
+    path: '/logout',
+    icon: <Icon as={MdLogout} width="20px" height="20px" color="inherit" />,
+    action: 'logout', // Marquer cette route comme une action spéciale
   },
 ];
 
