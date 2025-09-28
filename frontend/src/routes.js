@@ -15,6 +15,7 @@ import Employees from 'views/admin/employees';
 import PayrollCycles from 'views/admin/payrollCycles';
 import Payments from 'views/admin/payments';
 import Profile from 'views/admin/profile';
+import SignIn from 'views/auth/signIn/SignIn';
 
 const routes = [
   {
@@ -53,12 +54,19 @@ const routes = [
     component: <Profile />,
   },
   {
+    name: 'Sign In',
+    layout: '/auth',
+    path: '/sign-in',
+    component: <SignIn />,
+  },
+  {
     name: 'Déconnexion',
     layout: '/admin',
     path: '/logout',
     icon: <Icon as={MdLogout} width="20px" height="20px" color="inherit" />,
-    action: 'logout', // Marquer cette route comme une action spéciale
-  },
+    action: 'logout',
+  }
+
 ];
 
 export default routes;

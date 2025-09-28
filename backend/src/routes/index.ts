@@ -2,7 +2,7 @@ import { Router } from 'express';
 import routeurAuthentification from './authentification';
 import routeurEmployes from './employes';
 import routeurCyclesPaie from './cyclesPaie';
-import routeurDashboard from './dashboard_temp';
+import routeurDashboard from './Dashboard';
 import routeurPaiements from './paiements';
 import { middlewareAuthentification } from '../middleware/authentification';
 

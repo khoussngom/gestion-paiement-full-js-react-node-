@@ -1,3 +1,4 @@
+nohup: les entrées sont ignorées
 
 > gestion-salaries-backend@1.0.0 dev
 > nodemon --exec ts-node -r tsconfig-paths/register src/app.ts
@@ -7,46 +8,28 @@
 [33m[nodemon] watching path(s): *.*[39m
 [33m[nodemon] watching extensions: ts,json[39m
 [32m[nodemon] starting `ts-node -r tsconfig-paths/register src/app.ts`[39m
+node:events:495
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: EBADF: bad file descriptor, read
+Emitted 'error' event on ReadStream instance at:
+    at emitErrorNT (node:internal/streams/destroy:151:8)
+    at errorOrDestroy (node:internal/streams/destroy:214:7)
+    at node:internal/fs/streams:260:9
+    at FSReqCallback.wrapper [as oncomplete] (node:fs:677:5) {
+  errno: -9,
+  code: 'EBADF',
+  syscall: 'read'
+}
+
+Node.js v18.19.1
 🚀 Serveur démarré sur le port 3001
 📊 Dashboard: http://localhost:3001
 🔧 API: http://localhost:3001/api
 💼 Environnement: development
 🗄️  Base de données: Connectée
-2025-09-27T21:26:18.986Z - GET /api/sante
-2025-09-27T21:28:34.182Z - GET /api/dashboard/statistiques
+2025-09-28T18:12:16.282Z - GET /api/dashboard/statistiques
 🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-27T21:28:49.368Z - POST /api/auth/connexion
-2025-09-27T21:28:49.605Z - GET /api/dashboard/statistiques
-🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-28T00:45:07.983Z - GET /api/dashboard/rapport/mensuel
-2025-09-28T00:45:15.333Z - GET /api/cycles-paie
-2025-09-28T00:45:18.061Z - GET /api/dashboard/statistiques
-🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-28T00:45:20.075Z - GET /api/employes
-2025-09-28T00:45:20.660Z - GET /api/cycles-paie
-2025-09-28T00:45:22.094Z - GET /api/paiements/statistiques
-2025-09-28T00:45:22.122Z - GET /api/paiements
-2025-09-28T00:46:09.610Z - GET /api/paiements/statistiques
-2025-09-28T00:46:09.699Z - GET /api/paiements
-2025-09-28T00:49:56.087Z - GET /api/paiements/statistiques
-2025-09-28T00:49:56.138Z - GET /api/paiements
-2025-09-28T00:50:28.055Z - GET /api/paiements/statistiques
-2025-09-28T00:50:28.087Z - GET /api/paiements
-2025-09-28T00:52:17.933Z - GET /api/paiements/statistiques
-2025-09-28T00:52:17.962Z - GET /api/paiements
-2025-09-28T00:54:55.539Z - GET /api/dashboard/statistiques
-🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-28T00:54:56.232Z - GET /api/employes
-2025-09-28T00:54:57.021Z - GET /api/cycles-paie
-2025-09-28T00:54:57.880Z - GET /api/dashboard/statistiques
-🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-28T00:56:20.807Z - GET /api/dashboard/statistiques
-🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-28T00:56:34.662Z - GET /api/dashboard/statistiques
-🔧 [DEBUG] Route dashboard_temp.ts utilisée
-2025-09-28T00:57:27.065Z - GET /api/employes
-2025-09-28T00:57:28.829Z - GET /api/cycles-paie
-2025-09-28T00:57:29.910Z - GET /api/paiements/statistiques
-2025-09-28T00:57:29.939Z - GET /api/paiements
-2025-09-28T00:57:37.236Z - GET /api/dashboard/statistiques
+2025-09-28T18:12:48.770Z - GET /api/dashboard/statistiques
 🔧 [DEBUG] Route dashboard_temp.ts utilisée

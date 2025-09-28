@@ -1,35 +1,22 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
-
-// Configuration axios
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Intercepteur pour ajouter le token d'authentification
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Auth interceptor
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('authToken');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-// Intercepteur pour gérer les erreurs de réponse
+// Error interceptor
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
-      // Token expiré ou invalide
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/auth/sign-in';
@@ -38,111 +25,25 @@ api.interceptors.response.use(
   }
 );
 
+// Services condensés
 export const employeeService = {
-  // Récupérer tous les employés
-  getAll: async (filters = {}) => {
-    const params = new URLSearchParams();
-    Object.keys(filters).forEach(key => {
-      if (filters[key] !== undefined && filters[key] !== '') {
-        params.append(key, filters[key]);
-      }
-    });
-    
-    const response = await api.get(`/employes?${params}`);
-    return response.data;
-  },
-
-  // Récupérer un employé par ID
-  getById: async (id) => {
-    const response = await api.get(`/employes/${id}`);
-    return response.data;
-  },
-
-  // Créer un nouvel employé
-  create: async (employeeData) => {
-    const response = await api.post('/employes', employeeData);
-    return response.data;
-  },
-
-  // Mettre à jour un employé
-  update: async (id, employeeData) => {
-    const response = await api.put(`/employes/${id}`, employeeData);
-    return response.data;
-  },
-
-  // Supprimer un employé
-  delete: async (id) => {
-    const response = await api.delete(`/employes/${id}`);
-    return response.data;
-  },
-
-  // Activer/Désactiver un employé
-  toggleStatus: async (id, active) => {
-    const endpoint = active ? 'activer' : 'desactiver';
-    const response = await api.patch(`/employes/${id}/${endpoint}`);
-    return response.data;
-  },
-
-  // Obtenir les statistiques des employés
-  getStatistics: async () => {
-    const response = await api.get('/employes/statistiques');
-    return response.data;
-  },
+  getAll: async () => (await api.get('/employes')).data,
+  getById: async (id) => (await api.get(`/employes/${id}`)).data,
+  create: async (data) => (await api.post('/employes', data)).data,
+  update: async (id, data) => (await api.put(`/employes/${id}`, data)).data,
+  delete: async (id) => (await api.delete(`/employes/${id}`)).data,
+  toggleStatus: async (id, active) => (await api.patch(`/employes/${id}/${active ? 'activer' : 'desactiver'}`)).data,
 };
 
 export const payrollCycleService = {
-  // Récupérer tous les cycles de paie
-  getAll: async (filters = {}) => {
-    const params = new URLSearchParams();
-    Object.keys(filters).forEach(key => {
-      if (filters[key] !== undefined && filters[key] !== '') {
-        params.append(key, filters[key]);
-      }
-    });
-    
-    const response = await api.get(`/cycles-paie?${params}`);
-    return response.data;
-  },
-
-  // Récupérer un cycle par ID
-  getById: async (id) => {
-    const response = await api.get(`/cycles-paie/${id}`);
-    return response.data;
-  },
-
-  // Créer un nouveau cycle
-  create: async (cycleData) => {
-    const response = await api.post('/cycles-paie', cycleData);
-    return response.data;
-  },
-
-  // Mettre à jour un cycle
-  update: async (id, cycleData) => {
-    const response = await api.put(`/cycles-paie/${id}`, cycleData);
-    return response.data;
-  },
-
-  // Supprimer un cycle
-  delete: async (id) => {
-    const response = await api.delete(`/cycles-paie/${id}`);
-    return response.data;
-  },
-
-  // Mettre à jour le statut d'un cycle
-  updateStatus: async (id, status) => {
-    const response = await api.patch(`/cycles-paie/${id}/statut`, { statut: status });
-    return response.data;
-  },
-
-  // Générer les bulletins de paie pour un cycle
-  generatePayslips: async (cycleId) => {
-    const response = await api.post(`/cycles-paie/${cycleId}/generer-bulletins`);
-    return response.data;
-  },
+  getAll: async () => (await api.get('/cycles-paie')).data,
+  getById: async (id) => (await api.get(`/cycles-paie/${id}`)).data,
+  create: async (data) => (await api.post('/cycles-paie', data)).data,
+  update: async (id, data) => (await api.put(`/cycles-paie/${id}`, data)).data,
+  delete: async (id) => (await api.delete(`/cycles-paie/${id}`)).data,
 };
 
 export const authService = {
-  // Connexion
   login: async (credentials) => {
     const response = await api.post('/auth/connexion', credentials);
     if (response.data.succes && response.data.donnees.token) {
@@ -151,83 +52,46 @@ export const authService = {
     }
     return response.data;
   },
-
-  // Inscription
-  register: async (userData) => {
-    const response = await api.post('/auth/inscription', userData);
-    return response.data;
-  },
-
-  // Déconnexion
   logout: async () => {
-    try {
-      await api.post('/auth/deconnexion');
-    } finally {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-    }
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
   },
-
-  // Récupérer l'utilisateur actuel
-  getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-
-  // Vérifier si l'utilisateur est connecté
-  isAuthenticated: () => {
-    return !!localStorage.getItem('authToken');
-  },
+  getCurrentUser: () => JSON.parse(localStorage.getItem('user') || 'null'),
+  isAuthenticated: () => !!localStorage.getItem('authToken'),
 };
 
 export const dashboardService = {
-  // Récupérer les statistiques du tableau de bord
-  getStatistics: async () => {
-    const response = await api.get('/dashboard/statistiques');
-    return response.data;
-  },
-
-  // Exporter la liste des employés
-  exportEmployees: async () => {
-    const response = await api.get('/dashboard/export/employes');
-    return response.data;
-  },
-
-  // Générer un rapport mensuel
-  getMonthlyReport: async (year, month) => {
-    const params = new URLSearchParams();
-    if (year) params.append('annee', year);
-    if (month) params.append('mois', month);
-    
-    const response = await api.get(`/dashboard/rapport/mensuel?${params}`);
-    return response.data;
-  },
+  getStatistics: async () => (await api.get('/dashboard/statistiques')).data,
 };
 
 export const paymentService = {
-  // Récupérer tous les paiements
-  getAll: async () => {
-    const response = await api.get('/paiements');
-    return response.data;
+  getAll: async () => (await api.get('/paiements')).data,
+  getStatistics: async () => (await api.get('/paiements/statistics')).data,
+  create: async (data) => (await api.post('/paiements', data)).data,
+  exportCSV: async () => {
+    const response = await api.get('/paiements/export/csv', { responseType: 'blob' });
+    const blob = new Blob([response.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `paiements_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
-
-  // Récupérer les statistiques de paiement
-  getStatistics: async () => {
-    const response = await api.get('/paiements/statistiques');
-    return response.data;
-  },
-
-  // Créer un nouveau paiement
-  create: async (paymentData) => {
-    const response = await api.post('/paiements', paymentData);
-    return response.data;
-  },
-
-  // Récupérer un paiement par ID
-  getById: async (id) => {
-    const response = await api.get(`/paiements/${id}`);
-    return response.data;
-  },
+  generateReport: async () => {
+    const response = await api.get('/paiements/rapport/pdf', { responseType: 'blob' });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rapport_paiements_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
 };
 
 export default api;

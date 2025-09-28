@@ -2,7 +2,6 @@
 import { Box, Flex, Icon, Text } from "@chakra-ui/react";
 import PropTypes from "prop-types";
 import React from "react";
-import Footer from "components/footer/FooterAuth";
 // Custom components
 import { NavLink } from "react-router-dom";
 // Assets
@@ -70,7 +69,6 @@ function AuthIllustration(props) {
             position='absolute'
             borderBottomLeftRadius={{ lg: "120px", xl: "200px" }}></Flex>
         </Box>
-        <Footer />
       </Flex>
     </Flex>
   );

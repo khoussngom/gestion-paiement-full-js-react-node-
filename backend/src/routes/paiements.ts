@@ -205,4 +205,142 @@ routeurPaiements.get('/statistiques', async (req, res) => {
   }
 });
 
+// GET /paiements/statistics - Obtenir les statistiques des paiements
+routeurPaiements.get('/statistics', async (req, res) => {
+  try {
+    const entrepriseId = req.utilisateur?.entrepriseId;
+    
+    if (!entrepriseId) {
+      return res.status(403).json({
+        succes: false,
+        message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
+      });
+    }
+
+    const stats = await serviceDashboard.obtenirStatistiquesCompletes(entrepriseId);
+    
+    // Adapter la structure pour le frontend des paiements
+    const statsFormatees = {
+      totalEmployes: stats.employes?.actifs || 0,
+      totalSalaireBrut: stats.paiements?.masseSalarialeTotal || 0,
+      paiementsEffectues: stats.paiements?.total?.nombre || 0,
+      paiementsEnAttente: Math.max(0, (stats.employes?.actifs || 0) - (stats.paiements?.total?.nombre || 0))
+    };
+    
+    console.log('📊 Stats complètes:', JSON.stringify(stats, null, 2));
+    console.log('📊 Stats formatées pour frontend:', statsFormatees);
+    
+    res.status(200).json({
+      succes: true,
+      donnees: statsFormatees
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      succes: false,
+      message: MESSAGES_ERREUR.ERREUR_SERVEUR,
+      erreur: error.message
+    });
+  }
+});
+
+// GET /paiements/export/csv - Exporter les paiements en CSV
+routeurPaiements.get('/export/csv', async (req, res) => {
+  try {
+    const entrepriseId = req.utilisateur?.entrepriseId;
+    
+    if (!entrepriseId) {
+      return res.status(403).json({
+        succes: false,
+        message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
+      });
+    }
+
+    const paiements = await prisma.paiement.findMany({
+      where: { entrepriseId },
+      include: {
+        employe: true,
+        bulletinPaie: true
+      },
+      orderBy: { dateCreation: 'desc' }
+    });
+
+    // Formatage en CSV
+    const csvHeader = 'Employé,Montant,Mode de paiement,Date,Statut Bulletin,Référence\n';
+    const csvData = paiements.map(p => 
+      `"${p.employe?.nomComplet || 'N/A'}","${p.montant}","${p.modePaiement}","${new Date(p.datePaiement).toLocaleDateString('fr-FR')}","${p.bulletinPaie?.statut || 'N/A'}","${p.reference || 'N/A'}"`
+    ).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=paiements_${new Date().toISOString().split('T')[0]}.csv`);
+    res.send(csvHeader + csvData);
+
+  } catch (error: any) {
+    res.status(500).json({
+      succes: false,
+      message: MESSAGES_ERREUR.ERREUR_SERVEUR,
+      erreur: error.message
+    });
+  }
+});
+
+// GET /paiements/rapport/pdf - Générer un rapport PDF
+routeurPaiements.get('/rapport/pdf', async (req, res) => {
+  try {
+    const entrepriseId = req.utilisateur?.entrepriseId;
+    
+    if (!entrepriseId) {
+      return res.status(403).json({
+        succes: false,
+        message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
+      });
+    }
+
+    // Pour l'instant, générons un rapport simple en texte
+    // Dans une vraie application, on utiliserait une lib comme puppeteer ou jsPDF
+    const paiements = await prisma.paiement.findMany({
+      where: { entrepriseId },
+      include: {
+        employe: true,
+        bulletinPaie: true
+      },
+      orderBy: { dateCreation: 'desc' }
+    });
+
+    const stats = await serviceDashboard.obtenirStatistiquesCompletes(entrepriseId);
+    
+    const rapport = `
+RAPPORT DES PAIEMENTS
+=====================
+Date de génération: ${new Date().toLocaleDateString('fr-FR')}
+
+STATISTIQUES GÉNÉRALES
+----------------------
+Total employés: ${stats.employes?.actifs || 0}
+Paiements effectués: ${paiements.length}
+Masse salariale totale: ${paiements.reduce((sum, p) => sum + Number(p.montant), 0)} FCFA
+
+DÉTAIL DES PAIEMENTS
+--------------------
+${paiements.map(p => `
+- ${p.employe?.nomComplet || 'N/A'}: ${p.montant} FCFA (${p.modePaiement}) - ${new Date(p.datePaiement).toLocaleDateString('fr-FR')} - Statut bulletin: ${p.bulletinPaie?.statut || 'N/A'}
+`).join('')}
+
+Fin du rapport
+`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=rapport_paiements_${new Date().toISOString().split('T')[0]}.pdf`);
+    // Pour simplifier, on renvoie du texte brut pour l'instant
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(rapport);
+
+  } catch (error: any) {
+    res.status(500).json({
+      succes: false,
+      message: MESSAGES_ERREUR.ERREUR_SERVEUR,
+      erreur: error.message
+    });
+  }
+});
+
 export default routeurPaiements;

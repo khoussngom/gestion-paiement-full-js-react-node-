@@ -21,11 +21,12 @@ import { SidebarResponsive } from 'components/sidebar/Sidebar';
 import PropTypes from 'prop-types';
 import React from 'react';
 // Assets
-import navImage from 'assets/img/layout/Navbar.png';
+// import navImage from 'assets/img/layout/Navbar.png'; // Image supprimée
 import { MdNotificationsNone, MdInfoOutline } from 'react-icons/md';
 import { IoMdMoon, IoMdSunny } from 'react-icons/io';
 import { FaEthereum } from 'react-icons/fa';
 import routes from 'routes';
+import { useAuth } from 'contexts/AuthContext';
 export default function HeaderLinks(props) {
   const { secondary } = props;
   const { colorMode, toggleColorMode } = useColorMode();
@@ -43,6 +44,7 @@ export default function HeaderLinks(props) {
     '14px 17px 40px 4px rgba(112, 144, 176, 0.06)',
   );
   const borderButton = useColorModeValue('secondaryGray.500', 'whiteAlpha.200');
+  const { user } = useAuth();
   return (
     <Flex
       w={{ sm: '100%', md: 'auto' }}
@@ -180,7 +182,7 @@ export default function HeaderLinks(props) {
           minW={{ base: 'unset' }}
           maxW={{ base: '360px', md: 'unset' }}
         >
-          <Image src={navImage} borderRadius="16px" mb="28px" />
+          {/* <Image src={navImage} borderRadius="16px" mb="28px" /> */}
           <Flex flexDirection="column">
 
       
@@ -211,7 +213,7 @@ export default function HeaderLinks(props) {
           <Avatar
             _hover={{ cursor: 'pointer' }}
             color="white"
-            name="Adela Parkson"
+            name={user ? `${user.prenom} ${user.nom}` : 'Utilisateur'}
             bg="#11047A"
             size="sm"
             w="40px"
@@ -238,7 +240,7 @@ export default function HeaderLinks(props) {
               fontWeight="700"
               color={textColor}
             >
-              👋&nbsp; Hey, Adela
+              Hey, {user ? `${user.prenom} ${user.nom}` : 'Utilisateur'}
             </Text>
           </Flex>
           <Flex flexDirection="column" p="10px">

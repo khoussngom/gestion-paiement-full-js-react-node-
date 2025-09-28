@@ -27,6 +27,7 @@ import MiniStatistics from 'components/card/MiniStatistics';
 import IconBox from 'components/icons/IconBox';
 import { paymentService } from 'services/api';
 import PaymentModal from 'components/modals/PaymentModal';
+import { exportToCSV } from 'utils/export';
 
 export default function Payments() {
   const [payments, setPayments] = useState([]);
@@ -50,14 +51,24 @@ export default function Payments() {
       
       // Charger les statistiques
       const statsResponse = await paymentService.getStatistics();
-      if (statsResponse.succes) {
+      if (statsResponse?.succes && statsResponse.donnees) {
         setStatistics(statsResponse.donnees);
+      } else {
+        // Garder les valeurs par défaut si l'API échoue
+        setStatistics({
+          totalEmployes: 0,
+          totalSalaireBrut: 0,
+          paiementsEffectues: 0,
+          paiementsEnAttente: 0
+        });
       }
 
       // Charger les paiements
       const paymentsResponse = await paymentService.getAll();
-      if (paymentsResponse.succes) {
+      if (paymentsResponse?.succes && paymentsResponse.donnees) {
         setPayments(paymentsResponse.donnees);
+      } else {
+        setPayments([]);
       }
       
     } catch (error) {
@@ -78,7 +89,68 @@ export default function Payments() {
     loadData();
   }, [loadData]);
 
+  const handleExportCSV = async () => {
+    try {
+      if (payments.length === 0) {
+        // Export via backend si disponible
+        await paymentService.exportCSV();
+      } else {
+        // Export local avec les données chargées
+        const formattedData = payments.map(payment => ({
+          'Employé': payment.employe?.nomComplet || 'N/A',
+          'Montant': payment.montant,
+          'Mode de paiement': getPaymentMethodLabel(payment.modePaiement),
+          'Date': new Date(payment.datePaiement).toLocaleDateString('fr-FR'),
+          'Statut': payment.statut,
+          'Période': payment.periode || 'N/A'
+        }));
+        exportToCSV(formattedData, `paiements_${new Date().toISOString().split('T')[0]}.csv`);
+      }
+      toast({
+        title: 'Export réussi',
+        description: 'Les données ont été exportées avec succès',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'export:', error);
+      toast({
+        title: 'Erreur d\'export',
+        description: 'Impossible d\'exporter les données',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      await paymentService.generateReport();
+      toast({
+        title: 'Rapport généré',
+        description: 'Le rapport PDF a été téléchargé avec succès',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération du rapport:', error);
+      toast({
+        title: 'Erreur de génération',
+        description: 'Impossible de générer le rapport PDF',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return '0 FCFA';
+    }
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF', // Franc CFA
@@ -96,13 +168,14 @@ export default function Payments() {
   };
 
   const getPaymentMethodLabel = (method) => {
+    if (!method) return 'Non défini';
     switch (method) {
       case 'ESPECES': return 'Espèces';
       case 'VIREMENT_BANCAIRE': return 'Virement';
       case 'ORANGE_MONEY': return 'Orange Money';
       case 'WAVE': return 'Wave';
       case 'AUTRE': return 'Autre';
-      default: return method;
+      default: return method || 'Inconnu';
     }
   };
 
@@ -120,7 +193,7 @@ export default function Payments() {
             />
           }
           name="Employés Actifs"
-          value={statistics.totalEmployes.toString()}
+          value={statistics?.totalEmployes?.toString() || '0'}
         />
         <MiniStatistics
           startContent={
@@ -132,7 +205,7 @@ export default function Payments() {
             />
           }
           name="Masse Salariale"
-          value={formatCurrency(statistics.totalSalaireBrut)}
+          value={formatCurrency(statistics?.totalSalaireBrut || 0)}
         />
         <MiniStatistics
           startContent={
@@ -144,7 +217,7 @@ export default function Payments() {
             />
           }
           name="Paiements Effectués"
-          value={statistics.paiementsEffectues.toString()}
+          value={statistics?.paiementsEffectues?.toString() || '0'}
         />
         <MiniStatistics
           startContent={
@@ -156,7 +229,7 @@ export default function Payments() {
             />
           }
           name="En Attente"
-          value={statistics.paiementsEnAttente.toString()}
+          value={statistics?.paiementsEnAttente?.toString() || '0'}
         />
       </SimpleGrid>
 
@@ -202,20 +275,20 @@ export default function Payments() {
                   <Tr key={payment.id}>
                     <Td>
                       <VStack align="start" spacing={1}>
-                        <Text fontWeight="bold">{payment.employe?.nomComplet}</Text>
-                        <Text fontSize="sm" color="gray.500">{payment.employe?.email}</Text>
+                        <Text fontWeight="bold">{payment?.employe?.nomComplet || 'N/A'}</Text>
+                        <Text fontSize="sm" color="gray.500">{payment?.employe?.email || 'N/A'}</Text>
                       </VStack>
                     </Td>
                     <Td>
-                      <Text fontWeight="bold">{formatCurrency(payment.montant)}</Text>
+                      <Text fontWeight="bold">{formatCurrency(payment?.montant)}</Text>
                     </Td>
                     <Td>
                       <Badge colorScheme="blue">
-                        {getPaymentMethodLabel(payment.modePaiement)}
+                        {getPaymentMethodLabel(payment?.modePaiement)}
                       </Badge>
                     </Td>
                     <Td>
-                      {new Date(payment.datePaiement || payment.dateCreation).toLocaleDateString('fr-FR')}
+                      {new Date(payment?.datePaiement || payment?.dateCreation || new Date()).toLocaleDateString('fr-FR')}
                     </Td>
                     <Td>
                       <Badge colorScheme={getStatusColor('PAYE')}>
@@ -246,10 +319,10 @@ export default function Payments() {
             >
               Effectuer un Paiement
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleGenerateReport}>
               Générer Rapport
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExportCSV}>
               Exporter Données
             </Button>
           </HStack>

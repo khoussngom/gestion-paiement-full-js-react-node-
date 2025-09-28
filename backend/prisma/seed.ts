@@ -135,7 +135,7 @@ async function main() {
           tauxHonoraire: 5000,
           typeContrat: TypeContrat.HONORAIRE,
           entrepriseId: entreprise.id,
-          actif: true
+          actif: false
         }
       })
     ]);
