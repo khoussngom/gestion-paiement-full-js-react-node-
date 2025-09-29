@@ -19,7 +19,20 @@ export function SidebarLinks(props) {
   let brandColor = useColorModeValue("brand.500", "brand.400");
 
   const { routes } = props;
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  // Filtrer les routes selon le rôle et masquer les routes indésirables
+  const filteredRoutes = routes.filter(route => {
+    // Masquer les routes marquées comme hideInSidebar
+    if (route.hideInSidebar) return false;
+    
+    // Si c'est une route super admin only, vérifier le rôle
+    if (route.superAdminOnly && user?.role !== 'SUPER_ADMIN') {
+      return false;
+    }
+    
+    return true;
+  });
 
   // Fonction pour gérer la déconnexion
   const handleLogout = async () => {
@@ -177,7 +190,7 @@ export function SidebarLinks(props) {
     });
   };
   //  BRAND
-  return createLinks(routes);
+  return createLinks(filteredRoutes);
 }
 
 export default SidebarLinks;

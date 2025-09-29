@@ -55,17 +55,20 @@ const routes = [
     icon: <Icon as={MdPerson} width="20px" height="20px" color="inherit" />,
     component: <Profile />,
   },
+  // Routes cachées (pas dans la sidebar)
   {
     name: 'Accueil',
     layout: '/auth',
     path: '/landing',
     component: <LandingPage />,
+    hideInSidebar: true,
   },
   {
     name: 'Connexion',
     layout: '/auth',
     path: '/sign-in',
     component: <SignIn />,
+    hideInSidebar: true,
   },
   {
     name: 'Super Admin',
@@ -73,6 +76,8 @@ const routes = [
     path: '/super-admin',
     icon: <Icon as={MdPerson} width="20px" height="20px" color="inherit" />,
     component: <SuperAdminDashboard />,
+    hideInSidebar: true, // Caché de la sidebar normale
+    superAdminOnly: true, // Accessible seulement au super admin
   },
   {
     name: 'Déconnexion',

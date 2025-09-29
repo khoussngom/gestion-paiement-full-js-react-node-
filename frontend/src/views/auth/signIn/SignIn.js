@@ -56,7 +56,8 @@ function SignIn() {
 
     setLoading(true);
     try {
-      await login({ email, motDePasse });
+      const response = await login({ email, motDePasse });
+      
       toast({
         title: 'Connexion réussie',
         description: 'Bienvenue dans le système de gestion des salariés',
@@ -64,7 +65,14 @@ function SignIn() {
         duration: 3000,
         isClosable: true,
       });
-      navigate('/admin/dashboard');
+
+      // Redirection basée sur le rôle
+      const userRole = response.donnees?.utilisateur?.role;
+      if (userRole === 'SUPER_ADMIN') {
+        navigate('/admin/super-admin');
+      } else {
+        navigate('/admin/dashboard');
+      }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Erreur de connexion';
       setError(errorMessage);

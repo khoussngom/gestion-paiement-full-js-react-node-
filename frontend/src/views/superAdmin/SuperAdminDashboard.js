@@ -82,7 +82,7 @@ const SuperAdminDashboard = () => {
 
   const loadDemandes = async () => {
     try {
-      const response = await fetch('/api/demandes', {
+      const response = await fetch('http://localhost:3001/api/demandes', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -99,25 +99,46 @@ const SuperAdminDashboard = () => {
 
   const loadStats = async () => {
     try {
-      const response = await fetch('/api/demandes/statistics', {
+      const response = await fetch('http://localhost:3001/api/demandes/statistics', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.succes) {
         setStats(data.donnees);
+      } else {
+        console.error('Erreur API:', data.message);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger les statistiques',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
       }
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Problème de connexion au serveur',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
   const accepterDemande = async (id) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/demandes/${id}/accepter`, {
+      const response = await fetch(`http://localhost:3001/api/demandes/${id}/accepter`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -168,7 +189,7 @@ const SuperAdminDashboard = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/demandes/${selectedDemande.id}/rejeter`, {
+      const response = await fetch(`http://localhost:3001/api/demandes/${selectedDemande.id}/rejeter`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -244,11 +265,24 @@ const SuperAdminDashboard = () => {
   const handleApprovalSuccess = (data) => {
     loadDemandes();
     loadStats();
+    setSelectedDemande(null);
+    onApprovalClose();
   };
 
   const handleRejectionSuccess = (data) => {
     loadDemandes();
     loadStats();
+    setSelectedDemande(null);
+    setMotifRejet('');
+    onRejectClose();
+  };
+
+  const handleModalClose = () => {
+    setSelectedDemande(null);
+    setMotifRejet('');
+    onApprovalClose();
+    onRejectClose();
+    onDetailClose();
   };
 
   return (
@@ -410,7 +444,7 @@ const SuperAdminDashboard = () => {
       </Container>
 
       {/* Modal de détails */}
-      <Modal isOpen={isDetailOpen} onClose={onDetailClose} size="xl">
+      <Modal isOpen={isDetailOpen} onClose={handleModalClose} size="xl">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Détails de la demande</ModalHeader>
@@ -465,7 +499,7 @@ const SuperAdminDashboard = () => {
       </Modal>
 
       {/* Modal de rejet */}
-      <Modal isOpen={isRejectOpen} onClose={onRejectClose}>
+      <Modal isOpen={isRejectOpen} onClose={handleModalClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Rejeter la demande</ModalHeader>
@@ -499,7 +533,7 @@ const SuperAdminDashboard = () => {
       {/* Modal d'approbation avec formulaire pré-rempli */}
       <DemandeApprovalModal
         isOpen={isApprovalOpen}
-        onClose={onApprovalClose}
+        onClose={handleModalClose}
         demande={selectedDemande}
         onApprove={handleApprovalSuccess}
         onReject={handleRejectionSuccess}

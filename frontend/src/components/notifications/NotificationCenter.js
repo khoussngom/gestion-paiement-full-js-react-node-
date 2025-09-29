@@ -13,8 +13,7 @@ import {
   Flex,
   Avatar,
   useToast,
-  Portal,
-  Slide
+  Portal
 } from '@chakra-ui/react';
 import { MdNotifications, MdBusiness, MdClose } from 'react-icons/md';
 
@@ -23,6 +22,7 @@ const NotificationCenter = ({ onDemandeClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const toast = useToast();
+  const notificationRef = React.useRef();
   
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
@@ -40,6 +40,22 @@ const NotificationCenter = ({ onDemandeClick }) => {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Fermer les notifications en cliquant en dehors
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   const loadNotifications = async () => {
     try {
@@ -115,6 +131,10 @@ const NotificationCenter = ({ onDemandeClick }) => {
     setIsOpen(false);
   };
 
+  const closeNotifications = () => {
+    setIsOpen(false);
+  };
+
   return (
     <Box position="relative">
       {/* Bouton de notification */}
@@ -146,9 +166,10 @@ const NotificationCenter = ({ onDemandeClick }) => {
       </Button>
 
       {/* Panel de notifications */}
-      <Portal>
-        <Slide direction="top" in={isOpen}>
+      {isOpen && (
+        <Portal>
           <Box
+            ref={notificationRef}
             position="fixed"
             top="80px"
             right="20px"
@@ -165,7 +186,7 @@ const NotificationCenter = ({ onDemandeClick }) => {
             {/* Header */}
             <Flex justify="space-between" align="center" p={4} borderBottomWidth={1}>
               <Text fontWeight="bold">Notifications</Text>
-              <Button size="sm" variant="ghost" onClick={() => setIsOpen(false)}>
+              <Button size="sm" variant="ghost" onClick={closeNotifications}>
                 <Icon as={MdClose} />
               </Button>
             </Flex>
@@ -221,8 +242,8 @@ const NotificationCenter = ({ onDemandeClick }) => {
               )}
             </VStack>
           </Box>
-        </Slide>
-      </Portal>
+        </Portal>
+      )}
     </Box>
   );
 };

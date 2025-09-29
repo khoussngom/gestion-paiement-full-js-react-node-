@@ -62,6 +62,7 @@ export const authService = {
 
 export const dashboardService = {
   getStatistics: async () => (await api.get('/dashboard/statistiques')).data,
+  exportEmployees: async () => (await api.get('/dashboard/employes')).data,
 };
 
 export const paymentService = {
