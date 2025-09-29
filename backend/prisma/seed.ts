@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, RoleUtilisateur } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { StatutCyclePaie, TypeContrat, StatutBulletinPaie } from '../src/enums';
 
@@ -43,7 +43,7 @@ async function main() {
         prenom: 'Entreprise1',
         email: 'adminEntreprise1@marakhib.com',
         motDePasse: motDePasseHash,
-        role: 'ADMIN',
+        role: RoleUtilisateur.ADMIN_ENTREPRISE,
         entrepriseId: entreprise.id,
         actif: true
       }
@@ -58,7 +58,7 @@ async function main() {
         prenom: 'Entreprise1',
         email: 'caissierEntrepise1@marakhib.com',
         motDePasse: motDePasseHash,
-        role: 'CAISSIER',
+        role: RoleUtilisateur.CAISSIER,
         entrepriseId: entreprise.id,
         actif: true
       }
@@ -73,7 +73,7 @@ async function main() {
         prenom: 'Entreprise2',
         email: 'caissierEntrepise2@marakhib.com',
         motDePasse: motDePasseHash,
-        role: 'CAISSIER',
+        role: RoleUtilisateur.CAISSIER,
         entrepriseId: entreprise2.id,
         actif: true
       }
@@ -88,7 +88,7 @@ async function main() {
         prenom: 'Admin',
         email: 'superadmin@marakhib.com',
         motDePasse: motDePasseHash,
-        role: 'SUPER_ADMIN',
+        role: RoleUtilisateur.SUPER_ADMIN,
         actif: true
       }
     });

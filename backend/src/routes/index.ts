@@ -4,12 +4,16 @@ import routeurEmployes from './employes_new';
 import routeurCyclesPaie from './cyclesPaie';
 import routeurDashboard from './dashboard_clean';
 import routeurPaiements from './paiements';
+import routeurDemandes from './demandes';
 import { middlewareAuthentification } from '../middleware/authentification';
 
 const routeurPrincipal = Router();
 
 // Routes d'authentification (publiques)
 routeurPrincipal.use('/auth', routeurAuthentification);
+
+// Routes pour les demandes d'accès (publiques et protégées)
+routeurPrincipal.use('/demandes', routeurDemandes);
 
 // Routes protégées
 routeurPrincipal.use('/employes', middlewareAuthentification, routeurEmployes);

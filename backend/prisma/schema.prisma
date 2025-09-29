@@ -18,8 +18,14 @@ enum TypeContrat {
 
 enum RoleUtilisateur {
   SUPER_ADMIN
-  ADMIN
+  ADMIN_ENTREPRISE
   CAISSIER
+}
+
+enum StatutDemande {
+  EN_ATTENTE
+  ACCEPTEE
+  REJETEE
 }
 
 enum StatutCyclePaie {
@@ -49,20 +55,42 @@ model Entreprise {
   telephone        String?
   email            String?
   logo             String?
+  secteurActivite  String?
   devise           String   @default("FCFA")
-  typePeriode      String   @default("MENSUEL") // MENSUEL, HEBDOMADAIRE, JOURNALIER
+  typePeriode      String   @default("MENSUEL")
   dateCreation     DateTime @default(now())
   dateModification DateTime @updatedAt
   actif            Boolean  @default(true)
 
-  // Relations
   utilisateurs   Utilisateur[]
   employes       Employe[]
   cyclesPaie     CyclePaie[]
   bulletinsPaie  BulletinPaie[]
   paiements      Paiement[]
+  demandesAcces  DemandeAcces[]
 
   @@map("entreprises")
+}
+
+model DemandeAcces {
+  id                    String         @id @default(cuid())
+  nomEntreprise         String
+  nomResponsable        String
+  email                 String
+  telephone             String
+  secteurActivite       String
+  nombreEmployes        String
+  message               String?
+  statut                StatutDemande  @default(EN_ATTENTE)
+  dateCreation          DateTime       @default(now())
+  dateTraitement        DateTime?
+  traitePar             String?
+  motifRejet            String?
+  motDePasseTemporaire  String?
+  entrepriseCreeeId     String?        @unique
+  entrepriseCreee       Entreprise?    @relation(fields: [entrepriseCreeeId], references: [id])
+
+  @@map("demandes_acces")
 }
 
 model Utilisateur {
@@ -77,7 +105,6 @@ model Utilisateur {
   dateModification  DateTime        @updatedAt
   actif             Boolean         @default(true)
 
-  // Relations
   entreprise        Entreprise?     @relation(fields: [entrepriseId], references: [id])
   paiementsEffectues Paiement[]
 
@@ -101,8 +128,6 @@ model Employe {
   dateCreation          DateTime    @default(now())
   dateModification      DateTime    @updatedAt
   actif                 Boolean     @default(true)
-
-  // Relations
   entreprise            Entreprise  @relation(fields: [entrepriseId], references: [id])
   bulletinsPaie         BulletinPaie[]
   paiements             Paiement[]
@@ -119,8 +144,6 @@ model CyclePaie {
   entrepriseId      String
   dateCreation      DateTime         @default(now())
   dateModification  DateTime         @updatedAt
-
-  // Relations
   entreprise        Entreprise       @relation(fields: [entrepriseId], references: [id])
   bulletinsPaie     BulletinPaie[]
 
@@ -135,13 +158,11 @@ model BulletinPaie {
   salaireBrut       Decimal
   deductions        Decimal            @default(0)
   salaireNet        Decimal
-  joursTravailles   Int?               // Pour les journaliers
-  heuresTravailleurs Int?              // Pour les horaires
+  joursTravailles   Int?
+  heuresTravailleurs Int?
   statut            StatutBulletinPaie @default(EN_ATTENTE)
   dateCreation      DateTime           @default(now())
   dateModification  DateTime           @updatedAt
-
-  // Relations
   employe           Employe            @relation(fields: [employeId], references: [id])
   cyclePaie         CyclePaie          @relation(fields: [cycleId], references: [id])
   entreprise        Entreprise         @relation(fields: [entrepriseId], references: [id])
@@ -163,8 +184,6 @@ model Paiement {
   notes             String?
   datePaiement      DateTime      @default(now())
   dateCreation      DateTime      @default(now())
-
-  // Relations
   bulletinPaie      BulletinPaie  @relation(fields: [bulletinPaieId], references: [id])
   employe           Employe       @relation(fields: [employeId], references: [id])
   entreprise        Entreprise    @relation(fields: [entrepriseId], references: [id])

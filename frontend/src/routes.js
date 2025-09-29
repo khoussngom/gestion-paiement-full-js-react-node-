@@ -16,6 +16,8 @@ import PayrollCycles from 'views/admin/payrollCycles';
 import Payments from 'views/admin/payments';
 import Profile from 'views/admin/profile';
 import SignIn from 'views/auth/signIn/SignIn';
+import LandingPage from 'views/auth/landing/LandingPage';
+import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
 
 const routes = [
   {
@@ -47,17 +49,30 @@ const routes = [
     component: <Payments />,
   },
   {
-    name: 'Profile',
+    name: 'Profil',
     layout: '/admin',
     path: '/profile',
     icon: <Icon as={MdPerson} width="20px" height="20px" color="inherit" />,
     component: <Profile />,
   },
   {
-    name: 'Sign In',
+    name: 'Accueil',
+    layout: '/auth',
+    path: '/landing',
+    component: <LandingPage />,
+  },
+  {
+    name: 'Connexion',
     layout: '/auth',
     path: '/sign-in',
     component: <SignIn />,
+  },
+  {
+    name: 'Super Admin',
+    layout: '/admin',
+    path: '/super-admin',
+    icon: <Icon as={MdPerson} width="20px" height="20px" color="inherit" />,
+    component: <SuperAdminDashboard />,
   },
   {
     name: 'Déconnexion',
@@ -66,7 +81,6 @@ const routes = [
     icon: <Icon as={MdLogout} width="20px" height="20px" color="inherit" />,
     action: 'logout',
   }
-
 ];
 
 export default routes;

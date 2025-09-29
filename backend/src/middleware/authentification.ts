@@ -28,7 +28,7 @@ export const middlewareAuthentification = (req: Request, res: Response, next: Ne
       });
     }
 
-    const token = authHeader.split(' ')[1]; // Bearer TOKEN
+    const token = authHeader.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
