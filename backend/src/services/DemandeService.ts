@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, StatutDemande, RoleUtilisateur } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 export class DemandeService {
   private prisma: PrismaClient;
@@ -11,7 +12,7 @@ export class DemandeService {
     return await this.prisma.demandeAcces.create({
       data: {
         ...donneesDemande,
-        statut: 'EN_ATTENTE',
+        statut: StatutDemande.EN_ATTENTE,
         dateCreation: new Date()
       }
     });
@@ -44,7 +45,7 @@ export class DemandeService {
       throw new Error('Demande non trouvée');
     }
 
-    if (demande.statut !== 'EN_ATTENTE') {
+    if (demande.statut !== StatutDemande.EN_ATTENTE) {
       throw new Error('Cette demande a déjà été traitée');
     }
 
@@ -71,7 +72,7 @@ export class DemandeService {
         prenom: '', // Prénom vide par défaut, peut être mis à jour par l'utilisateur
         email: demande.email,
         motDePasse: motDePasseHache,
-        role: 'ADMIN_ENTREPRISE',
+        role: RoleUtilisateur.ADMIN_ENTREPRISE,
         entrepriseId: entreprise.id,
         actif: true
       }
@@ -81,7 +82,7 @@ export class DemandeService {
     const demandeAcceptee = await this.prisma.demandeAcces.update({
       where: { id },
       data: {
-        statut: 'ACCEPTEE',
+        statut: StatutDemande.ACCEPTEE,
         dateTraitement: new Date(),
         traitePar: superAdminId,
         entrepriseCreeeId: entreprise.id,
@@ -109,14 +110,14 @@ export class DemandeService {
       throw new Error('Demande non trouvée');
     }
 
-    if (demande.statut !== 'EN_ATTENTE') {
+    if (demande.statut !== StatutDemande.EN_ATTENTE) {
       throw new Error('Cette demande a déjà été traitée');
     }
 
     return await this.prisma.demandeAcces.update({
       where: { id },
       data: {
-        statut: 'REJETEE',
+        statut: StatutDemande.REJETEE,
         dateTraitement: new Date(),
         traitePar: superAdminId,
         motifRejet
@@ -136,9 +137,9 @@ export class DemandeService {
   async obtenirStatistiques() {
     const [total, enAttente, acceptees, rejetees] = await Promise.all([
       this.prisma.demandeAcces.count(),
-      this.prisma.demandeAcces.count({ where: { statut: 'EN_ATTENTE' } }),
-      this.prisma.demandeAcces.count({ where: { statut: 'ACCEPTEE' } }),
-      this.prisma.demandeAcces.count({ where: { statut: 'REJETEE' } })
+      this.prisma.demandeAcces.count({ where: { statut: StatutDemande.EN_ATTENTE } }),
+      this.prisma.demandeAcces.count({ where: { statut: StatutDemande.ACCEPTEE } }),
+      this.prisma.demandeAcces.count({ where: { statut: StatutDemande.REJETEE } })
     ]);
 
     return {

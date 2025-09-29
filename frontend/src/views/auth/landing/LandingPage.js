@@ -97,7 +97,7 @@ const LandingPage = () => {
     setIsLoading(true);
     try {
       // Ici on enverrait la demande au backend
-      const response = await fetch('/api/demandes', {
+      const response = await fetch('http://localhost:3001/api/demandes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ const LandingPage = () => {
               leftIcon={<Icon as={MdLogin} />}
               colorScheme="blue"
               variant="outline"
-              onClick={() => navigate('/auth/signin')}
+              onClick={() => navigate('/auth/sign-in')}
             >
               Se Connecter
             </Button>

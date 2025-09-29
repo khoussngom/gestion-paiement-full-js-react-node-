@@ -46,8 +46,11 @@ import {
   MdBusiness,
   MdEmail,
   MdPhone,
-  MdPerson
+  MdPerson,
+  MdNotifications
 } from 'react-icons/md';
+import DemandeApprovalModal from '../../components/modals/DemandeApprovalModal';
+import NotificationCenter from '../../components/notifications/NotificationCenter';
 
 const SuperAdminDashboard = () => {
   const [demandes, setDemandes] = useState([]);
@@ -63,6 +66,7 @@ const SuperAdminDashboard = () => {
   
   const { isOpen: isRejectOpen, onOpen: onRejectOpen, onClose: onRejectClose } = useDisclosure();
   const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose } = useDisclosure();
+  const { isOpen: isApprovalOpen, onOpen: onApprovalOpen, onClose: onApprovalClose } = useDisclosure();
   
   const toast = useToast();
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -232,17 +236,35 @@ const SuperAdminDashboard = () => {
     onRejectOpen();
   };
 
+  const openApprovalModal = (demande) => {
+    setSelectedDemande(demande);
+    onApprovalOpen();
+  };
+
+  const handleApprovalSuccess = (data) => {
+    loadDemandes();
+    loadStats();
+  };
+
+  const handleRejectionSuccess = (data) => {
+    loadDemandes();
+    loadStats();
+  };
+
   return (
     <Box minH="100vh" bg={bgColor} py={8}>
       <Container maxW="7xl">
         <VStack spacing={8} align="stretch">
           {/* Header */}
-          <Box>
-            <Heading size="xl" mb={2}>Dashboard Super Administrateur</Heading>
-            <Text color={textColor}>
-              Gérez les demandes d'accès et les entreprises
-            </Text>
-          </Box>
+          <Flex justify="space-between" align="center">
+            <Box>
+              <Heading size="xl" mb={2}>Dashboard Super Administrateur</Heading>
+              <Text color={useColorModeValue('gray.600', 'gray.400')}>
+                Gérez les demandes d'accès et les entreprises
+              </Text>
+            </Box>
+            <NotificationCenter onDemandeClick={openApprovalModal} />
+          </Flex>
 
           {/* Statistiques */}
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4}>
@@ -351,16 +373,17 @@ const SuperAdminDashboard = () => {
                                 <Button
                                   size="sm"
                                   colorScheme="green"
-                                  onClick={() => accepterDemande(demande.id)}
-                                  isLoading={loading}
+                                  onClick={() => openApprovalModal(demande)}
+                                  leftIcon={<Icon as={MdCheckCircle} />}
                                 >
-                                  Accepter
+                                  Examiner
                                 </Button>
                                 <Button
                                   size="sm"
                                   colorScheme="red"
                                   variant="outline"
                                   onClick={() => openRejectModal(demande)}
+                                  leftIcon={<Icon as={MdCancel} />}
                                 >
                                   Rejeter
                                 </Button>
@@ -472,6 +495,15 @@ const SuperAdminDashboard = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Modal d'approbation avec formulaire pré-rempli */}
+      <DemandeApprovalModal
+        isOpen={isApprovalOpen}
+        onClose={onApprovalClose}
+        demande={selectedDemande}
+        onApprove={handleApprovalSuccess}
+        onReject={handleRejectionSuccess}
+      />
     </Box>
   );
 };
