@@ -19,8 +19,7 @@ routeurPrincipal.use('/demandes', routeurDemandes);
 routeurPrincipal.use('/employes', middlewareAuthentification, routeurEmployes);
 routeurPrincipal.use('/cycles-paie', middlewareAuthentification, routeurCyclesPaie);
 routeurPrincipal.use('/paiements', middlewareAuthentification, routeurPaiements);
-// Route dashboard temporairement sans auth pour les tests
-routeurPrincipal.use('/dashboard', routeurDashboard);
+routeurPrincipal.use('/dashboard', middlewareAuthentification, routeurDashboard);
 
 // Route de santé
 routeurPrincipal.get('/sante', (req, res) => {
