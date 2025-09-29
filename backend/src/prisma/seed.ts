@@ -54,7 +54,7 @@ async function seed() {
         prenom: 'Amadou',
         email: 'adminEntreprise1@marakhib.com',
         motDePasse: await bcrypt.hash('admin123', 10),
-        role: RoleUtilisateur.ADMIN,
+        role: RoleUtilisateur.ADMIN_ENTREPRISE,
         entrepriseId: entrepriseDemo.id
       }
     });
@@ -66,7 +66,7 @@ async function seed() {
         prenom: 'Mariama',
         email: 'admin@marakhib-tech.sn',
         motDePasse: await bcrypt.hash('admin123', 10),
-        role: RoleUtilisateur.ADMIN,
+        role: RoleUtilisateur.ADMIN_ENTREPRISE,
         entrepriseId: entreprise2.id
       }
     });

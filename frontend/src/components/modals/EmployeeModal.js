@@ -18,8 +18,52 @@ import {
   NumberInput,
   NumberInputField,
   Textarea,
+  Box,
+  List,
+  ListItem,
+  InputGroup,
+  InputRightElement,
+  IconButton,
 } from '@chakra-ui/react';
+import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { employeeService } from 'services/employeeService';
+
+// Liste des professions courantes
+const PROFESSIONS = [
+  // Informatique et Tech
+  'Développeur Frontend', 'Développeur Backend', 'Développeur Fullstack', 'Développeur Mobile',
+  'Développeur Web', 'Data Scientist', 'Analyste de Données', 'Administrateur Système',
+  'Architecte Logiciel', 'Chef de Projet IT', 'Product Owner', 'Scrum Master',
+  'DevOps Engineer', 'Ingénieur Cloud', 'Cybersécurité', 'UX/UI Designer',
+  
+  // Commerce et Vente
+  'Commercial', 'Vendeur', 'Chargé de Clientèle', 'Responsable Commercial',
+  'Account Manager', 'Business Developer', 'Téléconseiller', 'Caissier',
+  
+  // Finance et Comptabilité
+  'Comptable', 'Assistant Comptable', 'Contrôleur de Gestion', 'Analyste Financier',
+  'Trésorier', 'Auditeur', 'Expert-Comptable', 'Gestionnaire de Paie',
+  
+  // Ressources Humaines
+  'Responsable RH', 'Chargé de Recrutement', 'Gestionnaire RH', 'Formation',
+  'Consultant RH', 'Assistant RH',
+  
+  // Marketing et Communication
+  'Chargé de Marketing', 'Community Manager', 'Content Manager', 'SEO Specialist',
+  'Graphiste', 'Webdesigner', 'Chargé de Communication', 'Brand Manager',
+  
+  // Administration et Support
+  'Assistant Administratif', 'Secrétaire', 'Réceptionniste', 'Office Manager',
+  'Assistant de Direction', 'Gestionnaire Administratif',
+  
+  // Production et Logistique
+  'Responsable Logistique', 'Magasinier', 'Préparateur de Commandes',
+  'Responsable Production', 'Technicien', 'Mécanicien', 'Électricien',
+  
+  // Services et Autres
+  'Consultant', 'Formateur', 'Chef de Projet', 'Analyste',
+  'Juriste', 'Avocat', 'Médecin', 'Infirmier', 'Enseignant', 'Architecte'
+].sort();
 
 export default function EmployeeModal({ isOpen, onClose, employee = null, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -35,6 +79,9 @@ export default function EmployeeModal({ isOpen, onClose, employee = null, onSucc
     dateEmbauche: '',
   });
   const [loading, setLoading] = useState(false);
+  const [professionSearch, setProfessionSearch] = useState('');
+  const [showProfessionDropdown, setShowProfessionDropdown] = useState(false);
+  const [filteredProfessions, setFilteredProfessions] = useState(PROFESSIONS);
   const toast = useToast();
 
   useEffect(() => {
@@ -51,6 +98,7 @@ export default function EmployeeModal({ isOpen, onClose, employee = null, onSucc
         tauxSalaireHoraire: employee.tauxSalaireHoraire || 0,
         dateEmbauche: employee.dateEmbauche ? new Date(employee.dateEmbauche).toISOString().split('T')[0] : '',
       });
+      setProfessionSearch(employee.poste || '');
     } else {
       // Reset form for new employee
       setFormData({
@@ -65,8 +113,47 @@ export default function EmployeeModal({ isOpen, onClose, employee = null, onSucc
         tauxSalaireHoraire: 0,
         dateEmbauche: new Date().toISOString().split('T')[0],
       });
+      setProfessionSearch('');
     }
+    setShowProfessionDropdown(false);
+    setFilteredProfessions(PROFESSIONS);
   }, [employee, isOpen]);
+
+  // Filtrer les professions selon la recherche
+  useEffect(() => {
+    if (professionSearch.trim() === '') {
+      setFilteredProfessions(PROFESSIONS);
+    } else {
+      const filtered = PROFESSIONS.filter(profession =>
+        profession.toLowerCase().includes(professionSearch.toLowerCase())
+      );
+      setFilteredProfessions(filtered);
+    }
+  }, [professionSearch]);
+
+  const handleProfessionSearch = (value) => {
+    setProfessionSearch(value);
+    setFormData(prev => ({ ...prev, poste: value }));
+    setShowProfessionDropdown(true);
+  };
+
+  const selectProfession = (profession) => {
+    setProfessionSearch(profession);
+    setFormData(prev => ({ ...prev, poste: profession }));
+    setShowProfessionDropdown(false);
+  };
+
+  // Fermer le dropdown quand on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProfessionDropdown && !event.target.closest('.profession-dropdown')) {
+        setShowProfessionDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showProfessionDropdown]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -174,12 +261,62 @@ export default function EmployeeModal({ isOpen, onClose, employee = null, onSucc
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel>Poste</FormLabel>
-                  <Input
-                    value={formData.poste}
-                    onChange={(e) => handleInputChange('poste', e.target.value)}
-                    placeholder="Développeur, Manager, etc."
-                  />
+                  <FormLabel>Profession</FormLabel>
+                  <Box position="relative" className="profession-dropdown">
+                    <InputGroup>
+                      <Input
+                        value={professionSearch}
+                        onChange={(e) => handleProfessionSearch(e.target.value)}
+                        onFocus={() => setShowProfessionDropdown(true)}
+                        placeholder="Rechercher ou saisir une profession..."
+                      />
+                      <InputRightElement>
+                        <IconButton
+                          size="sm"
+                          variant="ghost"
+                          icon={showProfessionDropdown ? <MdArrowDropUp /> : <MdArrowDropDown />}
+                          onClick={() => setShowProfessionDropdown(!showProfessionDropdown)}
+                        />
+                      </InputRightElement>
+                    </InputGroup>
+                    
+                    {showProfessionDropdown && filteredProfessions.length > 0 && (
+                      <Box
+                        position="absolute"
+                        top="100%"
+                        left={0}
+                        right={0}
+                        zIndex={10}
+                        maxH="200px"
+                        overflowY="auto"
+                        bg="white"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="md"
+                        boxShadow="lg"
+                      >
+                        <List>
+                          {filteredProfessions.slice(0, 10).map((profession, index) => (
+                            <ListItem
+                              key={index}
+                              px={3}
+                              py={2}
+                              cursor="pointer"
+                              _hover={{ bg: 'blue.50' }}
+                              onClick={() => selectProfession(profession)}
+                            >
+                              {profession}
+                            </ListItem>
+                          ))}
+                          {filteredProfessions.length > 10 && (
+                            <ListItem px={3} py={2} fontSize="sm" color="gray.500">
+                              ... et {filteredProfessions.length - 10} autres
+                            </ListItem>
+                          )}
+                        </List>
+                      </Box>
+                    )}
+                  </Box>
                 </FormControl>
 
                 <FormControl isRequired>
@@ -222,13 +359,13 @@ export default function EmployeeModal({ isOpen, onClose, employee = null, onSucc
 
                 {formData.typeContrat === 'HONORAIRE' && (
                   <FormControl isRequired>
-                    <FormLabel>Taux d'honoraire (FCFA)</FormLabel>
+                    <FormLabel>Taux d'honoraire par heure (FCFA)</FormLabel>
                     <NumberInput
                       value={formData.tauxHonoraire}
                       onChange={(valueString) => handleInputChange('tauxHonoraire', valueString)}
                       min={0}
                     >
-                      <NumberInputField placeholder="50000" />
+                      <NumberInputField placeholder="15000" />
                     </NumberInput>
                   </FormControl>
                 )}

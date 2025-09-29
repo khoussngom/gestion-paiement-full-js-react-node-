@@ -4,8 +4,6 @@ import {
   Button,
   Flex,
   Icon,
-  Image,
-  Link,
   Menu,
   MenuButton,
   MenuItem,
@@ -22,13 +20,15 @@ import PropTypes from 'prop-types';
 import React from 'react';
 // Assets
 // import navImage from 'assets/img/layout/Navbar.png'; // Image supprimée
-import { MdNotificationsNone, MdInfoOutline } from 'react-icons/md';
+import { MdNotificationsNone, MdInfoOutline, MdArrowBack } from 'react-icons/md';
 import { IoMdMoon, IoMdSunny } from 'react-icons/io';
 import { FaEthereum } from 'react-icons/fa';
-import routes from 'routes';
 import { useAuth } from 'contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import defaultRoutes from 'routes';
+
 export default function HeaderLinks(props) {
-  const { secondary } = props;
+  const { secondary, routes = defaultRoutes } = props;
   const { colorMode, toggleColorMode } = useColorMode();
   // Chakra Color Mode
   const navbarIcon = useColorModeValue('gray.400', 'white');
@@ -43,8 +43,30 @@ export default function HeaderLinks(props) {
     '14px 17px 40px 4px rgba(112, 144, 176, 0.18)',
     '14px 17px 40px 4px rgba(112, 144, 176, 0.06)',
   );
-  const borderButton = useColorModeValue('secondaryGray.500', 'whiteAlpha.200');
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Vérifier si l'utilisateur est un super admin qui accède à une entreprise
+  const isSuperAdminAccess = user?.isSuperAdminAccess;
+
+  const handleReturnToSuperAdmin = () => {
+    // Restaurer l'utilisateur original
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const originalUser = {
+      ...currentUser,
+      entrepriseId: null,
+      entrepriseNom: null,
+      isSuperAdminAccess: false,
+      role: currentUser.originalRole || 'SUPER_ADMIN'
+    };
+    delete originalUser.originalRole;
+    
+    localStorage.setItem('user', JSON.stringify(originalUser));
+    
+    // Rediriger vers le dashboard super admin
+    navigate('/admin/super-admin');
+  };
+
   return (
     <Flex
       w={{ sm: '100%', md: 'auto' }}
@@ -101,6 +123,26 @@ export default function HeaderLinks(props) {
         </Text>
       </Flex>
       <SidebarResponsive routes={routes} />
+      
+      {/* Bouton de retour pour Super Admin */}
+      {isSuperAdminAccess && (
+        <Button
+          variant="ghost"
+          p="0px"
+          onClick={handleReturnToSuperAdmin}
+          me="10px"
+          borderRadius="full"
+          _hover={{ bg: 'rgba(112, 144, 176, 0.1)' }}
+        >
+          <Icon
+            as={MdArrowBack}
+            color={navbarIcon}
+            w="18px"
+            h="18px"
+          />
+        </Button>
+      )}
+
       <Menu>
         <MenuButton p="0px">
           <Icon

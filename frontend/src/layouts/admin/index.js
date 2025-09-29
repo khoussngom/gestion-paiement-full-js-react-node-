@@ -1,5 +1,5 @@
 // Chakra imports
-import { Portal, Box, useDisclosure, Text } from '@chakra-ui/react';
+import { Portal, Box, useDisclosure } from '@chakra-ui/react';
 // Layout components
 import Navbar from 'components/navbar/NavbarAdmin.js';
 import Sidebar from 'components/sidebar/Sidebar.js';
@@ -7,11 +7,18 @@ import { SidebarContext } from 'contexts/SidebarContext';
 import React, { useState, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import routes from 'routes.js';
+import superAdminRoutes from 'superAdminRoutes.js';
+import { useAuth } from 'contexts/AuthContext';
 
 // Custom Chakra theme
 export default function Dashboard(props) {
   const { ...rest } = props;
   const location = useLocation();
+  const { user } = useAuth();
+  
+  // Sélectionner les bonnes routes selon le rôle de l'utilisateur
+  const currentRoutes = user?.role === 'SUPER_ADMIN' ? superAdminRoutes : routes;
+  
   // states and functions
   const [fixed] = useState(false);
   const [toggleSidebar, setToggleSidebar] = useState(false);
@@ -19,7 +26,7 @@ export default function Dashboard(props) {
 
   // Effet pour mettre à jour le titre de la page dynamiquement
   useEffect(() => {
-    const currentRoute = routes.find(route => 
+    const currentRoute = currentRoutes.find(route => 
       location.pathname.includes(route.path) && route.layout === '/admin'
     );
     
@@ -31,7 +38,7 @@ export default function Dashboard(props) {
       setPageTitle('Tableau de Bord');
       document.title = 'Tableau de Bord - Marakhib Global';
     }
-  }, [location.pathname]);
+  }, [location.pathname, currentRoutes]);
 
   // functions for changing the states from components
   const getRoute = () => {
@@ -109,7 +116,7 @@ export default function Dashboard(props) {
             setToggleSidebar,
           }}
         >
-          <Sidebar routes={routes} display="none" {...rest} />
+          <Sidebar routes={currentRoutes} display="none" {...rest} />
           <Box
             float="right"
             minHeight="100vh"
@@ -130,9 +137,10 @@ export default function Dashboard(props) {
                   onOpen={onOpen}
                   logoText={'Marakhib-Global'}
                   brandText={pageTitle}
-                  secondary={getActiveNavbar(routes)}
-                  message={getActiveNavbarText(routes)}
+                  secondary={getActiveNavbar(currentRoutes)}
+                  message={getActiveNavbarText(currentRoutes)}
                   fixed={fixed}
+                  routes={currentRoutes}
                   {...rest}
                 />
               </Box>
@@ -147,7 +155,7 @@ export default function Dashboard(props) {
                 pt="50px"
               >
                 <Routes>
-                  {getRoutes(routes)}
+                  {getRoutes(currentRoutes)}
                   <Route
                     path="/"
                     element={<Navigate to="/admin/dashboard" replace />}

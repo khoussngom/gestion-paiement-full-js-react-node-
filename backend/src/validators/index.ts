@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { TypeContrat, RoleUtilisateur, StatutCyclePaie, ModePaiement } from '@/enums';
+import { TypeContrat, StatutCyclePaie, ModePaiement } from '@/enums';
+import { RoleUtilisateur } from '@prisma/client';
 import { MESSAGES_VALIDATION } from '@/enums/messages';
 
 // Validateur pour l'entreprise

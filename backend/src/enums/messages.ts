@@ -15,6 +15,13 @@ export const MESSAGES_SUCCES = {
   EMPLOYE_ACTIVE: 'Employé activé avec succès',
   EMPLOYE_DESACTIVE: 'Employé désactivé avec succès',
   
+  // Utilisateurs
+  UTILISATEUR_CREE: 'Utilisateur créé avec succès',
+  UTILISATEUR_MODIFIE: 'Utilisateur modifié avec succès',
+  UTILISATEUR_SUPPRIME: 'Utilisateur supprimé avec succès',
+  UTILISATEUR_ACTIVE: 'Utilisateur activé avec succès',
+  UTILISATEUR_DESACTIVE: 'Utilisateur désactivé avec succès',
+  
   // Cycles de paie
   CYCLE_PAIE_CREE: 'Cycle de paie créé avec succès',
   CYCLE_PAIE_MODIFIE: 'Cycle de paie modifié avec succès',

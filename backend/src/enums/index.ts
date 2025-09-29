@@ -6,7 +6,7 @@ export enum TypeContrat {
 
 export enum RoleUtilisateur {
   SUPER_ADMIN = 'SUPER_ADMIN',
-  ADMIN = 'ADMIN',
+  ADMIN_ENTREPRISE = 'ADMIN_ENTREPRISE',
   CAISSIER = 'CAISSIER'
 }
 

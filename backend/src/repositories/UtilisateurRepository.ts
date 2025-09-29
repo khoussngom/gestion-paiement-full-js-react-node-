@@ -135,4 +135,15 @@ export class UtilisateurRepository extends BasePrismaRepository {
     });
     return utilisateurs.map(u => new Utilisateur(u));
   }
+
+  async toggleActive(id: string, actif: boolean): Promise<Utilisateur> {
+    const utilisateur = await this.prisma.utilisateur.update({
+      where: { id },
+      data: { actif },
+      include: {
+        entreprise: true
+      }
+    });
+    return new Utilisateur(utilisateur);
+  }
 }

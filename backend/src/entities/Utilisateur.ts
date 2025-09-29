@@ -35,7 +35,7 @@ export class Utilisateur implements IUtilisateur {
   }
 
   estAdmin(): boolean {
-    return this.role === RoleUtilisateur.ADMIN;
+    return this.role === RoleUtilisateur.ADMIN_ENTREPRISE;
   }
 
   estCaissier(): boolean {
@@ -48,14 +48,14 @@ export class Utilisateur implements IUtilisateur {
   }
 
   peutEffectuerPaiements(): boolean {
-    return this.role === RoleUtilisateur.CAISSIER || this.role === RoleUtilisateur.ADMIN;
+    return this.role === RoleUtilisateur.CAISSIER || this.role === RoleUtilisateur.ADMIN_ENTREPRISE;
   }
 
   peutGererEmployes(): boolean {
-    return this.role === RoleUtilisateur.ADMIN || this.role === RoleUtilisateur.SUPER_ADMIN;
+    return this.role === RoleUtilisateur.ADMIN_ENTREPRISE || this.role === RoleUtilisateur.SUPER_ADMIN;
   }
 
   peutGererCyclesPaie(): boolean {
-    return this.role === RoleUtilisateur.ADMIN || this.role === RoleUtilisateur.SUPER_ADMIN;
+    return this.role === RoleUtilisateur.ADMIN_ENTREPRISE || this.role === RoleUtilisateur.SUPER_ADMIN;
   }
 }

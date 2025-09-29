@@ -112,7 +112,7 @@ export const middlewarePaiement = (req: Request, res: Response, next: NextFuncti
     });
   }
 
-  const rolesAutorises = [RoleUtilisateur.ADMIN, RoleUtilisateur.CAISSIER];
+  const rolesAutorises = [RoleUtilisateur.ADMIN_ENTREPRISE, RoleUtilisateur.CAISSIER];
   
   if (!rolesAutorises.includes(req.utilisateur.role)) {
     return res.status(403).json({
@@ -125,7 +125,7 @@ export const middlewarePaiement = (req: Request, res: Response, next: NextFuncti
 };
 
 // Middleware pour les permissions d'administration
-export const middlewareAdmin = middlewareRole([RoleUtilisateur.ADMIN, RoleUtilisateur.SUPER_ADMIN]);
+export const middlewareAdmin = middlewareRole([RoleUtilisateur.ADMIN_ENTREPRISE, RoleUtilisateur.SUPER_ADMIN]);
 
 // Middleware pour les super-administrateurs uniquement
 export const middlewareSuperAdmin = middlewareRole([RoleUtilisateur.SUPER_ADMIN]);

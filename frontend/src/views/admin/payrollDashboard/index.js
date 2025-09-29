@@ -18,6 +18,7 @@ import EmployeeStatsChart from 'components/charts/EmployeeStatsChart';
 import { dashboardService } from 'services/api';
 import { exportToCSV, formatEmployeeForExport, formatCurrency } from 'utils/export';
 import { useNavigate } from 'react-router-dom';
+import UserDebugInfo from 'components/debug/UserDebugInfo';
 
 export default function PayrollDashboard() {
   const [statistics, setStatistics] = useState(null);
@@ -120,6 +121,9 @@ export default function PayrollDashboard() {
 
   return (
     <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
+      {/* Debug Info - Temporaire */}
+      <UserDebugInfo />
+      
       {/* Header */}
       <Box mb="20px">
         <Text fontSize="2xl" fontWeight="700" color={textColor} mb={2}>

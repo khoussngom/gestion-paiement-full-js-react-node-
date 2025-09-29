@@ -325,7 +325,43 @@ function SignIn() {
       </Flex>
       
       {/* Section de l'image à droite */}
-
+      <Box
+        display={{ base: 'none', lg: 'flex' }}
+        w={{ base: '100%', lg: '50%' }}
+        h="100vh"
+        justifyContent="center"
+        alignItems="center"
+        position="relative"
+        bg="linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(159, 122, 234, 0.1) 100%)"
+        overflow="hidden"
+      >
+        <Box
+          position="absolute"
+          top="0"
+          left="0"
+          right="0"
+          bottom="0"
+          bgImage="url('/assets/img/auth/banner.png')"
+          bgSize="cover"
+          bgPosition="center"
+          bgRepeat="no-repeat"
+          opacity="0.7"
+        />
+        <Box
+          position="relative"
+          zIndex="1"
+          textAlign="center"
+          color="white"
+          p={8}
+        >
+          <Heading size="xl" mb={4}>
+            Bienvenue dans notre plateforme
+          </Heading>
+          <Text fontSize="lg">
+            Gérez facilement vos salaires et vos employés
+          </Text>
+        </Box>
+      </Box>
     </Flex>
     </DefaultAuth>
   );

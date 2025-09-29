@@ -51,6 +51,7 @@ import {
 } from 'react-icons/md';
 import DemandeApprovalModal from '../../components/modals/DemandeApprovalModal';
 import NotificationCenter from '../../components/notifications/NotificationCenter';
+import EnterpriseSelector from '../../components/enterprise/EnterpriseSelector';
 
 const SuperAdminDashboard = () => {
   const [demandes, setDemandes] = useState([]);
@@ -299,6 +300,12 @@ const SuperAdminDashboard = () => {
             </Box>
             <NotificationCenter onDemandeClick={openApprovalModal} />
           </Flex>
+
+          {/* Sélecteur d'entreprise */}
+          <EnterpriseSelector onEnterpriseChange={(entrepriseId) => {
+            console.log('Entreprise sélectionnée:', entrepriseId);
+            // Ici vous pouvez ajouter la logique pour filtrer les données par entreprise
+          }} />
 
           {/* Statistiques */}
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4}>

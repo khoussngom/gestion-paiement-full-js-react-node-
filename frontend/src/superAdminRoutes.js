@@ -3,13 +3,16 @@ import { Icon } from '@chakra-ui/react';
 import {
   MdDashboard,
   MdBusiness,
-  MdPeople,
   MdNotifications,
   MdSettings,
   MdLogout,
+  MdAccountCircle,
 } from 'react-icons/md';
 
 import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
+import EntrepriseManagement from 'views/superAdmin/EntrepriseManagement';
+import UserManagement from 'views/superAdmin/UserManagement';
+import EnterpriseDashboard from 'views/superAdmin/EnterpriseDashboard';
 
 const superAdminRoutes = [
   {
@@ -20,24 +23,10 @@ const superAdminRoutes = [
     component: <SuperAdminDashboard />,
   },
   {
-    name: 'Gestion Entreprises',
-    layout: '/admin',
-    path: '/super-admin/enterprises',
-    icon: <Icon as={MdBusiness} width="20px" height="20px" color="inherit" />,
-    component: <SuperAdminDashboard />, // Pour l'instant, même composant
-  },
-  {
     name: 'Demandes d\'Accès',
     layout: '/admin',
     path: '/super-admin/requests',
     icon: <Icon as={MdNotifications} width="20px" height="20px" color="inherit" />,
-    component: <SuperAdminDashboard />,
-  },
-  {
-    name: 'Utilisateurs',
-    layout: '/admin',
-    path: '/super-admin/users',
-    icon: <Icon as={MdPeople} width="20px" height="20px" color="inherit" />,
     component: <SuperAdminDashboard />,
   },
   {
@@ -46,6 +35,29 @@ const superAdminRoutes = [
     path: '/super-admin/settings',
     icon: <Icon as={MdSettings} width="20px" height="20px" color="inherit" />,
     component: <SuperAdminDashboard />,
+  },
+  {
+    name: 'Gestion Entreprises',
+    layout: '/admin',
+    path: '/super-admin/enterprises',
+    icon: <Icon as={MdBusiness} width="20px" height="20px" color="inherit" />,
+    component: <EntrepriseManagement />,
+  },
+  {
+    name: '', // Nom vide pour juste l'icône
+    layout: '/admin',
+    path: '/super-admin/users',
+    icon: <Icon as={MdAccountCircle} width="24px" height="24px" color="inherit" />,
+    component: <UserManagement />,
+    isUserIcon: true, // Flag pour identifier que c'est l'icône utilisateur
+    tooltip: 'Gestion des Utilisateurs', // Texte du tooltip
+  },
+  {
+    name: 'Dashboard Entreprise',
+    layout: '/admin',
+    path: '/entreprise/:entrepriseId/dashboard',
+    component: <EnterpriseDashboard />,
+    hidden: true, // Ne pas afficher dans le menu
   },
   {
     name: 'Déconnexion',
