@@ -139,4 +139,24 @@ export class EntrepriseRepository extends BasePrismaRepository {
       }
     };
   }
+
+  async updateLogo(id: string, logoUrl: string): Promise<Entreprise> {
+    return await this.prisma.entreprise.update({
+      where: { id },
+      data: { 
+        logo: logoUrl,
+        dateModification: new Date()
+      }
+    });
+  }
+
+  async removeLogo(id: string): Promise<Entreprise> {
+    return await this.prisma.entreprise.update({
+      where: { id },
+      data: { 
+        logo: null,
+        dateModification: new Date()
+      }
+    });
+  }
 }

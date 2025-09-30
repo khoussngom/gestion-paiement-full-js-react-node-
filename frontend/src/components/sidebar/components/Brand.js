@@ -14,14 +14,26 @@ export function SidebarBrand() {
   useEffect(() => {
     // Récupérer les informations d'entreprise depuis les statistiques du dashboard
     fetchDashboardStats();
+    
+    // Écouter les mises à jour du logo
+    const handleLogoUpdate = () => {
+      fetchDashboardStats();
+    };
+    
+    window.addEventListener('companyLogoUpdated', handleLogoUpdate);
+    
+    return () => {
+      window.removeEventListener('companyLogoUpdated', handleLogoUpdate);
+    };
   }, []);
 
   const fetchDashboardStats = async () => {
     try {
       console.log('Brand - Fetching dashboard statistics...');
-      const response = await fetch('http://localhost:3001/api/dashboard/statistiques', {
+      const response = await fetch(`http://localhost:3001/api/dashboard/statistiques?t=${Date.now()}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Cache-Control': 'no-cache'
         }
       });
       
@@ -32,6 +44,7 @@ export function SidebarBrand() {
         if (data.succes && data.donnees && data.donnees.entreprise) {
           const entrepriseData = data.donnees.entreprise;
           console.log('Brand - Setting entreprise info from dashboard:', entrepriseData);
+          console.log('Brand - Logo URL:', entrepriseData.logo);
           
           setEntrepriseInfo({
             nom: entrepriseData.nom,
@@ -58,7 +71,7 @@ export function SidebarBrand() {
         {entrepriseInfo.logo && (
           <Box mb='10px'>
             <Image 
-              src={entrepriseInfo.logo}
+              src={`${entrepriseInfo.logo}?t=${Date.now()}`}
               alt={`Logo ${entrepriseInfo.nom}`}
               maxH='60px'
               maxW='200px'

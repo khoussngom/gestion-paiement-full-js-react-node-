@@ -40,7 +40,11 @@ export class ServiceDashboard {
       id: entreprise?.id,
       nom: entreprise?.nom,
       adresse: entreprise?.adresse,
-      devise: entreprise?.devise
+      devise: entreprise?.devise,
+      logo: entreprise?.logo,
+      telephone: entreprise?.telephone,
+      email: entreprise?.email,
+      secteurActivite: entreprise?.secteurActivite
     };
   }
 

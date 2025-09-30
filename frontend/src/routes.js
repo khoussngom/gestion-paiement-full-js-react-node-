@@ -7,6 +7,7 @@ import {
   MdLogout,
   MdWork,
   MdAttachMoney,
+  MdSettings,
 } from 'react-icons/md';
 
 // Admin Imports - Gestion des Salariés
@@ -18,6 +19,7 @@ import Profile from 'views/admin/profile';
 import SignIn from 'views/auth/signIn/SignIn';
 import LandingPage from 'views/auth/landing/LandingPage';
 import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
+import CompanySettings from 'views/admin/settings/CompanySettings';
 
 const routes = [
   {
@@ -47,6 +49,13 @@ const routes = [
     path: '/payments',
     icon: <Icon as={MdAttachMoney} width="20px" height="20px" color="inherit" />,
     component: <Payments />,
+  },
+  {
+    name: 'Paramètres Entreprise',
+    layout: '/admin',
+    path: '/company-settings',
+    icon: <Icon as={MdSettings} width="20px" height="20px" color="inherit" />,
+    component: <CompanySettings />,
   },
   {
     name: 'Profil',

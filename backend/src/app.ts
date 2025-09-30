@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import routeurPrincipal from '@/routes';
 import { MESSAGES_ERREUR } from '@/enums/messages';
 
@@ -14,6 +15,9 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Servir les fichiers statiques (logos uploadés)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Middleware de logging
 app.use((req, res, next) => {

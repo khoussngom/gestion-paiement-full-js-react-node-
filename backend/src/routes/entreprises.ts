@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { EntrepriseRepository } from '@/repositories/EntrepriseRepository';
 import { UtilisateurRepository } from '@/repositories/UtilisateurRepository';
 import { schemaCreerEntreprise } from '@/validators';
@@ -9,6 +12,41 @@ import bcrypt from 'bcryptjs';
 const routeurEntreprises = Router();
 const entrepriseRepo = new EntrepriseRepository();
 const utilisateurRepo = new UtilisateurRepository();
+
+// Configuration de multer pour l'upload de logos
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../../uploads/logos');
+    // Créer le dossier s'il n'existe pas
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    // Générer un nom unique avec timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, `logo-${uniqueSuffix}${extension}`);
+  }
+});
+
+const fileFilter = (req: any, file: any, cb: any) => {
+  // Accepter seulement les images
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Seuls les fichiers image sont autorisés'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB max
+  }
+});
 
 // GET /entreprises - Obtenir toutes les entreprises (Super-Admin seulement)
 routeurEntreprises.get('/', async (req, res) => {
@@ -207,6 +245,122 @@ routeurEntreprises.get('/:id/dashboard', async (req, res) => {
       succes: false,
       message: MESSAGES_ERREUR.ERREUR_SERVEUR,
       erreur: error.message
+    });
+  }
+});
+
+// POST /entreprises/logo - Télécharger un logo
+routeurEntreprises.post('/logo', upload.single('logo'), async (req, res) => {
+  try {
+    const utilisateur = req.utilisateur;
+    console.log('📁 Upload logo - Utilisateur:', utilisateur?.id, 'Entreprise:', utilisateur?.entrepriseId);
+    
+    if (!req.file) {
+      return res.status(400).json({
+        succes: false,
+        message: 'Aucun fichier fourni'
+      });
+    }
+
+    if (!utilisateur?.entrepriseId) {
+      console.log('❌ Upload logo - Pas d\'entreprise associée');
+      return res.status(404).json({
+        succes: false,
+        message: 'Entreprise non trouvée'
+      });
+    }
+
+    // Récupérer l'entreprise actuelle pour supprimer l'ancien logo
+    const entrepriseActuelle = await entrepriseRepo.getById(utilisateur.entrepriseId);
+    
+    // Supprimer l'ancien logo s'il existe
+    if (entrepriseActuelle?.logo) {
+      const oldLogoPath = path.join(__dirname, '../../uploads/logos', path.basename(entrepriseActuelle.logo));
+      if (fs.existsSync(oldLogoPath)) {
+        fs.unlinkSync(oldLogoPath);
+      }
+    }
+
+    // Construire l'URL du nouveau logo
+    const logoUrl = `http://localhost:3001/uploads/logos/${req.file.filename}`;
+    console.log('🔗 Upload logo - URL générée:', logoUrl);
+
+    // Mettre à jour l'entreprise avec le nouveau logo
+    console.log('💾 Upload logo - Mise à jour de l\'entreprise:', utilisateur.entrepriseId);
+    const entrepriseUpdated = await entrepriseRepo.updateLogo(utilisateur.entrepriseId, logoUrl);
+    console.log('✅ Upload logo - Entreprise mise à jour:', entrepriseUpdated.logo);
+
+    res.json({
+      succes: true,
+      message: 'Logo téléchargé avec succès',
+      donnees: {
+        logoUrl: logoUrl
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Erreur upload logo:', error);
+    
+    // Supprimer le fichier en cas d'erreur
+    if (req.file) {
+      const filePath = req.file.path;
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur lors du téléchargement du logo'
+    });
+  }
+});
+
+// DELETE /entreprises/:id/logo - Supprimer un logo
+routeurEntreprises.delete('/:id/logo', async (req, res) => {
+  try {
+    const utilisateur = req.utilisateur;
+    const entrepriseId = req.params.id;
+
+    // Vérifier les droits d'accès
+    if (utilisateur?.role !== RoleUtilisateur.SUPER_ADMIN && utilisateur?.entrepriseId !== entrepriseId) {
+      return res.status(403).json({
+        succes: false,
+        message: MESSAGES_ERREUR.ACCES_REFUSE
+      });
+    }
+
+    // Récupérer l'entreprise
+    const entreprise = await entrepriseRepo.getById(entrepriseId);
+
+    if (!entreprise) {
+      return res.status(404).json({
+        succes: false,
+        message: 'Entreprise non trouvée'
+      });
+    }
+
+    // Supprimer le fichier logo s'il existe
+    if (entreprise.logo) {
+      const logoPath = path.join(__dirname, '../../uploads/logos', path.basename(entreprise.logo));
+      if (fs.existsSync(logoPath)) {
+        fs.unlinkSync(logoPath);
+      }
+    }
+
+        // Mettre à jour l'entreprise pour supprimer le logo
+    await entrepriseRepo.removeLogo(entrepriseId);
+
+    res.json({
+      succes: true,
+      message: 'Logo supprimé avec succès'
+    });
+
+  } catch (error: any) {
+    console.error('Erreur suppression logo:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur lors de la suppression du logo'
     });
   }
 });
