@@ -62,7 +62,14 @@ export const AuthProvider = ({ children }) => {
     return !!user && authService.isAuthenticated();
   };
 
-  const value = {user,login,register,logout,isAuthenticated,loading};
+  const setDoitChangerMotDePasse = (value) => {
+    if (user) {
+      setUser({ ...user, doitChangerMotDePasse: value });
+      localStorage.setItem('user', JSON.stringify({ ...user, doitChangerMotDePasse: value }));
+    }
+  };
+
+  const value = {user,login,register,logout,isAuthenticated,loading,setDoitChangerMotDePasse};
 
   return (
     <AuthContext.Provider value={value}>

@@ -25,6 +25,7 @@ import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { RiEyeCloseLine } from 'react-icons/ri';
 import { useAuth } from 'contexts/AuthContext';
 import loginImage from 'assets/img/auth/login.png';
+import ChangePasswordModal from '../../../components/auth/ChangePasswordModal';
 
 function SignIn() {
   const [show, setShow] = useState(false);
@@ -32,9 +33,10 @@ function SignIn() {
   const [motDePasse, setMotDePasse] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user, setDoitChangerMotDePasse } = useAuth();
   const toast = useToast();
 
   const textColor = useColorModeValue('navy.700', 'white');
@@ -42,7 +44,7 @@ function SignIn() {
   const textColorBrand = useColorModeValue('brand.500', 'white');
   const brandStars = useColorModeValue('brand.500', 'brand.400');
 
-  const   handleClick = () => setShow(!show);
+  const handleClick = () => setShow(!show);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,7 +58,6 @@ function SignIn() {
     setLoading(true);
     try {
       const response = await login({ email, motDePasse });
-      
       toast({
         title: 'Connexion réussie',
         description: 'Bienvenue dans le système de gestion des salariés',
@@ -64,7 +65,11 @@ function SignIn() {
         duration: 3000,
         isClosable: true,
       });
-
+      // Vérifier si le mot de passe doit être changé
+      if (response.donnees?.utilisateur?.doitChangerMotDePasse) {
+        setShowChangePassword(true);
+        return;
+      }
       // Redirection basée sur le rôle
       const userRole = response.donnees?.utilisateur?.role;
       if (userRole === 'SUPER_ADMIN') {
@@ -85,6 +90,12 @@ function SignIn() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePasswordChanged = () => {
+    setDoitChangerMotDePasse(false);
+    setShowChangePassword(false);
+    navigate('/admin/dashboard');
   };
 
   return (
@@ -328,6 +339,11 @@ function SignIn() {
         
      
     </Flex>
+    <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={handlePasswordChanged}
+        user={user}
+      />
     </DefaultAuth>
   );
 }

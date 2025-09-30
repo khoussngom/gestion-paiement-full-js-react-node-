@@ -268,4 +268,30 @@ routeurUtilisateurs.patch('/:id/toggle-status', async (req, res) => {
   }
 });
 
+// PUT /utilisateurs/:id/password - Changer le mot de passe (admin)
+routeurUtilisateurs.put('/:id/password', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ancienMotDePasse, nouveauMotDePasse } = req.body;
+    const utilisateur = await utilisateurRepo.getById(id);
+    if (!utilisateur) {
+      return res.status(404).json({ succes: false, message: 'Utilisateur introuvable' });
+    }
+    // Vérifier l'ancien mot de passe
+    const match = await bcrypt.compare(ancienMotDePasse, utilisateur.motDePasse);
+    if (!match) {
+      return res.status(400).json({ succes: false, message: 'Ancien mot de passe incorrect' });
+    }
+    // Mettre à jour le mot de passe et le flag
+    const motDePasseHache = await bcrypt.hash(nouveauMotDePasse, 10);
+    await utilisateurRepo.update(id, {
+      motDePasse: motDePasseHache,
+      doitChangerMotDePasse: false
+    });
+    res.status(200).json({ succes: true, message: 'Mot de passe mis à jour' });
+  } catch (error: any) {
+    res.status(500).json({ succes: false, message: 'Erreur serveur', erreur: error.message });
+  }
+});
+
 export default routeurUtilisateurs;

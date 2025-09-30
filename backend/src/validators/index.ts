@@ -24,7 +24,8 @@ export const schemaCreerUtilisateur = z.object({
   email: z.string().email(MESSAGES_VALIDATION.EMAIL_INVALIDE),
   motDePasse: z.string().min(6, MESSAGES_VALIDATION.MOT_DE_PASSE_TROP_COURT),
   role: z.nativeEnum(RoleUtilisateur),
-  entrepriseId: z.string().optional()
+  entrepriseId: z.string().optional(),
+  doitChangerMotDePasse: z.boolean().optional()
 });
 
 export const schemaConnexion = z.object({

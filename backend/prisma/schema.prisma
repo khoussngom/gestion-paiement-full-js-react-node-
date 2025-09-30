@@ -105,6 +105,7 @@ model Utilisateur {
   dateCreation      DateTime        @default(now())
   dateModification  DateTime        @updatedAt
   actif             Boolean         @default(true)
+  doitChangerMotDePasse Boolean     @default(true)
 
   entreprise        Entreprise?     @relation(fields: [entrepriseId], references: [id])
   paiementsEffectues Paiement[]

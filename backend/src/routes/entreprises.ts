@@ -8,6 +8,7 @@ import { schemaCreerEntreprise } from '@/validators';
 import { MESSAGES_SUCCES, MESSAGES_ERREUR } from '@/enums/messages';
 import { RoleUtilisateur } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { sendAdminWelcomeMail } from '@/services/mailService';
 
 const routeurEntreprises = Router();
 const entrepriseRepo = new EntrepriseRepository();
@@ -129,18 +130,30 @@ routeurEntreprises.post('/', async (req, res) => {
     const donneesValidees = schemaCreerEntreprise.parse(req.body);
     const nouvelleEntreprise = await entrepriseRepo.create(donneesValidees);
 
+    let motDePasseAdmin = req.body.adminMotDePasse;
     // Créer automatiquement un admin pour cette entreprise si fourni
-    if (req.body.adminEmail && req.body.adminMotDePasse) {
-      const motDePasseHache = await bcrypt.hash(req.body.adminMotDePasse, 10);
-      
-      await utilisateurRepo.create({
+    if (req.body.adminEmail && motDePasseAdmin) {
+      const motDePasseHache = await bcrypt.hash(motDePasseAdmin, 10);
+      const nouvelAdmin = await utilisateurRepo.create({
         nom: req.body.adminNom || 'Admin',
         prenom: req.body.adminPrenom || 'Entreprise',
         email: req.body.adminEmail,
         motDePasse: motDePasseHache,
         role: RoleUtilisateur.ADMIN_ENTREPRISE,
-        entrepriseId: nouvelleEntreprise.id
+        entrepriseId: nouvelleEntreprise.id,
+        doitChangerMotDePasse: true
       });
+      // Envoi de l'email à l'admin
+      try {
+        await sendAdminWelcomeMail({
+          to: req.body.adminEmail,
+          nomEntreprise: nouvelleEntreprise.nom,
+          emailAdmin: req.body.adminEmail,
+          motDePasse: motDePasseAdmin
+        });
+      } catch (err) {
+        console.error('Erreur envoi email admin:', err);
+      }
     }
 
     res.status(201).json({
