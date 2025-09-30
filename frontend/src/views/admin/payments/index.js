@@ -16,10 +16,6 @@ import {
   HStack,
   VStack,
   useToast,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
 } from '@chakra-ui/react';
 import { MdPayment, MdPerson, MdAttachMoney, MdTrendingUp } from 'react-icons/md';
 import Card from 'components/card/Card';
@@ -27,6 +23,7 @@ import MiniStatistics from 'components/card/MiniStatistics';
 import IconBox from 'components/icons/IconBox';
 import { paymentService } from 'services/api';
 import PaymentModal from 'components/modals/PaymentModal';
+import ReceiptModal from 'components/receipt/ReceiptModal';
 import { exportToCSV } from 'utils/export';
 
 export default function Payments() {
@@ -39,6 +36,8 @@ export default function Payments() {
   });
   const [loading, setLoading] = useState(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [selectedPaymentForReceipt, setSelectedPaymentForReceipt] = useState(null);
   const toast = useToast();
 
   const textColor = useColorModeValue("secondaryGray.900", "white");
@@ -179,6 +178,34 @@ export default function Payments() {
     }
   };
 
+  const handleShowReceipt = (payment) => {
+    setSelectedPaymentForReceipt(payment);
+    setIsReceiptModalOpen(true);
+  };
+
+  const handleCloseReceipt = () => {
+    setIsReceiptModalOpen(false);
+    setSelectedPaymentForReceipt(null);
+  };
+
+  // Fonction appelée après un paiement réussi pour générer automatiquement le reçu
+  const handlePaymentSuccess = (paymentData) => {
+    // Recharger les données
+    loadData();
+    
+    // Afficher automatiquement le reçu
+    setSelectedPaymentForReceipt(paymentData);
+    setIsReceiptModalOpen(true);
+    
+    toast({
+      title: 'Paiement effectué',
+      description: 'Le paiement a été enregistré et le reçu généré automatiquement',
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   return (
     <Box pt={{ base: "130px", md: "80px", xl: "80px" }}>
       {/* Statistics Cards */}
@@ -296,9 +323,15 @@ export default function Payments() {
                       </Badge>
                     </Td>
                     <Td>
-                      <Button size="sm" variant="ghost">
-                        Détails
-                      </Button>
+                      <HStack spacing={2}>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => handleShowReceipt(payment)}
+                        >
+                          Reçu
+                        </Button>
+                      </HStack>
                     </Td>
                   </Tr>
                 ))
@@ -333,10 +366,17 @@ export default function Payments() {
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        onSuccess={() => {
-          setIsPaymentModalOpen(false);
-          loadData(); // Recharger les données après un paiement réussi
-        }}
+        onSuccess={handlePaymentSuccess}
+      />
+
+      {/* Receipt Modal */}
+      <ReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={handleCloseReceipt}
+        paiement={selectedPaymentForReceipt}
+        employe={selectedPaymentForReceipt?.employe}
+        entreprise={selectedPaymentForReceipt?.entreprise}
+        cyclePaie={selectedPaymentForReceipt?.cyclePaie}
       />
     </Box>
   );

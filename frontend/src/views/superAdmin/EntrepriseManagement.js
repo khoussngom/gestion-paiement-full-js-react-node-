@@ -34,7 +34,8 @@ import {
   Card,
   CardBody,
   Heading,
-  Select
+  Select,
+  Image
 } from '@chakra-ui/react';
 import { MdAdd, MdMoreVert, MdEdit, MdDelete, MdVisibility, MdBusiness } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +45,8 @@ const EntrepriseManagement = () => {
   const [entreprises, setEntreprises] = useState([]);
   const [selectedEntreprise, setSelectedEntreprise] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
   const [formData, setFormData] = useState({
     nom: '',
     adresse: '',
@@ -98,6 +101,7 @@ const EntrepriseManagement = () => {
 
   const handleCreate = async () => {
     try {
+      // D'abord créer l'entreprise
       const response = await fetch('http://localhost:3001/api/entreprises', {
         method: 'POST',
         headers: {
@@ -110,9 +114,31 @@ const EntrepriseManagement = () => {
       const data = await response.json();
       
       if (data.succes) {
+        let logoUrl = '';
+        
+        // Si un logo a été sélectionné, l'uploader
+        if (logoFile) {
+          const formDataLogo = new FormData();
+          formDataLogo.append('logo', logoFile);
+          formDataLogo.append('entrepriseId', data.donnees.id);
+
+          const logoResponse = await fetch('http://localhost:3001/api/entreprises/logo', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: formDataLogo
+          });
+
+          const logoData = await logoResponse.json();
+          if (logoData.succes) {
+            logoUrl = logoData.logoUrl;
+          }
+        }
+
         toast({
           title: 'Succès',
-          description: 'Entreprise créée avec succès',
+          description: `Entreprise créée avec succès${logoUrl ? ' et logo uploadé' : ''}`,
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -289,6 +315,46 @@ const EntrepriseManagement = () => {
       adminPrenom: ''
     });
     setSelectedEntreprise(null);
+    setLogoPreview(null);
+    setLogoFile(null);
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Erreur',
+          description: 'Veuillez sélectionner un fichier image valide',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Vérifier la taille du fichier (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Erreur',
+          description: 'La taille du fichier ne doit pas dépasser 5MB',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      setLogoFile(file);
+      
+      // Créer un aperçu
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -509,12 +575,31 @@ const EntrepriseManagement = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Logo (URL)</FormLabel>
-                <Input
-                  value={formData.logo}
-                  onChange={(e) => setFormData({...formData, logo: e.target.value})}
-                  placeholder="https://exemple.com/logo.png"
-                />
+                <FormLabel>Logo de l'entreprise</FormLabel>
+                <VStack spacing={3} align="stretch">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    placeholder="Choisir un fichier image"
+                  />
+                  {logoPreview && (
+                    <Box>
+                      <Text fontSize="sm" mb={2}>Aperçu :</Text>
+                      <Image
+                        src={logoPreview}
+                        alt="Aperçu du logo"
+                        maxH="100px"
+                        maxW="200px"
+                        objectFit="contain"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="md"
+                        p={2}
+                      />
+                    </Box>
+                  )}
+                </VStack>
               </FormControl>
 
               <FormControl>
