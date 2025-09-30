@@ -289,7 +289,7 @@ const EntrepriseManagement = () => {
   };
 
   return (
-    <Box p={6}>
+    <Box p={6} pt={{ base: "130px", md: "80px", xl: "100px" }}>
       <VStack spacing={6} align="stretch">
         {/* Header */}
         <HStack justify="space-between">

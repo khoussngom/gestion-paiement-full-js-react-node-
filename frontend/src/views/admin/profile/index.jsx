@@ -10,6 +10,7 @@ import banner from "assets/img/auth/banner.png";
 import avatar from "assets/img/avatars/avatar4.png";
 import React from "react";
 import { useAuth } from "contexts/AuthContext";
+import UserProfileInfo from "components/profile/UserProfileInfo";
 
 export default function Overview() {
   const { user } = useAuth();
@@ -44,13 +45,9 @@ export default function Overview() {
           <Text fontSize='md' color="gray.400" mb='20px'>
             Gérez vos informations personnelles et préférences de compte.
           </Text>
-          {user && (
-            <Box>
-              <Text><strong>Email:</strong> {user.email}</Text>
-              <Text><strong>Rôle:</strong> {user.role}</Text>
-              <Text><strong>Entreprise:</strong> {user.entrepriseId || 'Non assigné'}</Text>
-            </Box>
-          )}
+          
+          {/* Informations détaillées de l'utilisateur */}
+          <UserProfileInfo />
         </Card>
       </Grid>
     </Box>

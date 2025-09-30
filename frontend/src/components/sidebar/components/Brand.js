@@ -12,24 +12,14 @@ export function SidebarBrand() {
   const [entrepriseInfo, setEntrepriseInfo] = useState(null);
 
   useEffect(() => {
-    // Récupérer les informations de l'utilisateur connecté
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (userData.entrepriseId) {
-      // Si l'utilisateur a une entreprise, récupérer ses informations
-      fetchEntrepriseInfo(userData.entrepriseId);
-    } else if (userData.isSuperAdminAccess && userData.entrepriseNom) {
-      // Si c'est un super admin qui accède à une entreprise
-      setEntrepriseInfo({
-        nom: userData.entrepriseNom,
-        logo: null // Le logo sera récupéré via l'API si nécessaire
-      });
-    }
+    // Récupérer les informations d'entreprise depuis les statistiques du dashboard
+    fetchDashboardStats();
   }, []);
 
-  const fetchEntrepriseInfo = async (entrepriseId) => {
+  const fetchDashboardStats = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/entreprises/${entrepriseId}`, {
+      console.log('Brand - Fetching dashboard statistics...');
+      const response = await fetch('http://localhost:3001/api/dashboard/statistiques', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -37,12 +27,27 @@ export function SidebarBrand() {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.succes) {
-          setEntrepriseInfo(data.donnees);
+        console.log('Brand - Dashboard data received:', data);
+        
+        if (data.succes && data.donnees && data.donnees.entreprise) {
+          const entrepriseData = data.donnees.entreprise;
+          console.log('Brand - Setting entreprise info from dashboard:', entrepriseData);
+          
+          setEntrepriseInfo({
+            nom: entrepriseData.nom,
+            logo: entrepriseData.logo || null
+          });
+        } else {
+          console.log('Brand - No entreprise in dashboard data');
+          setEntrepriseInfo(null);
         }
+      } else {
+        console.log('Brand - Dashboard fetch failed:', response.status);
+        setEntrepriseInfo(null);
       }
     } catch (error) {
-      console.error('Erreur lors de la récupération des informations de l\'entreprise:', error);
+      console.error('Brand - Error fetching dashboard stats:', error);
+      setEntrepriseInfo(null);
     }
   };
 

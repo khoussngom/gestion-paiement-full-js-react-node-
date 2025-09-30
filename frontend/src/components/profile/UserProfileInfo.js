@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text, Badge, VStack, HStack, useColorModeValue } from '@chakra-ui/react';
 import { useAuth } from 'contexts/AuthContext';
 
-const UserDebugInfo = () => {
+const UserProfileInfo = () => {
   const { user } = useAuth();
   const bg = useColorModeValue('gray.50', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
@@ -20,7 +20,7 @@ const UserDebugInfo = () => {
   return (
     <Box p={6} bg={bg} borderRadius="lg" border="1px solid" borderColor="gray.200">
       <Text fontWeight="bold" mb={4} fontSize="lg" color={textColor}>
-        � Informations du Compte
+        📋 Informations du Compte
       </Text>
       <VStack align="start" spacing={3}>
         <HStack>
@@ -102,4 +102,4 @@ const UserDebugInfo = () => {
   );
 };
 
-export default UserDebugInfo;
+export default UserProfileInfo;

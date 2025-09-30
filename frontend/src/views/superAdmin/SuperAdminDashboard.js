@@ -287,7 +287,7 @@ const SuperAdminDashboard = () => {
   };
 
   return (
-    <Box minH="100vh" bg={bgColor} py={8}>
+    <Box minH="100vh" bg={bgColor} pt={{ base: "130px", md: "80px", xl: "100px" }} pb={8}>
       <Container maxW="7xl">
         <VStack spacing={8} align="stretch">
           {/* Header */}

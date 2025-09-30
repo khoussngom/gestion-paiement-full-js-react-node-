@@ -94,7 +94,7 @@ const EnterpriseDashboard = () => {
   }
 
   return (
-    <Container maxW="7xl" py={8}>
+    <Container maxW="7xl" pt={{ base: "130px", md: "80px", xl: "100px" }} py={8}>
       <VStack spacing={6} align="stretch">
         {/* Header avec info entreprise */}
         <Card>
