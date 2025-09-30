@@ -9,10 +9,13 @@ import {
   ModalCloseButton,
   Button,
   useToast,
-  HStack
+  HStack,
+  Text,
+  Box
 } from '@chakra-ui/react';
-import { MdPrint, MdFileDownload } from 'react-icons/md';
+import { MdPrint, MdFileDownload, MdClose } from 'react-icons/md';
 import PaymentReceipt from './PaymentReceipt';
+import { useCompanyTheme } from '../../contexts/CompanyThemeContext';
 
 const ReceiptModal = ({ 
   isOpen, 
@@ -24,6 +27,7 @@ const ReceiptModal = ({
 }) => {
   const toast = useToast();
   const receiptRef = useRef();
+  const { companyColors } = useCompanyTheme();
 
   // Générer un numéro de reçu unique
   const generateReceiptNumber = () => {
@@ -97,13 +101,32 @@ const ReceiptModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl">
-      <ModalOverlay />
-      <ModalContent maxW="800px">
-        <ModalHeader>Reçu de Paiement</ModalHeader>
-        <ModalCloseButton />
+    <Modal isOpen={isOpen} onClose={onClose} size="5xl">
+      <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+      <ModalContent 
+        maxW="900px"
+        bg="gray.50"
+        borderRadius="xl"
+        boxShadow="2xl"
+      >
+        <ModalHeader 
+          bg={`linear-gradient(135deg, ${companyColors?.primary || "#007BFF"}, ${companyColors?.secondary || "#0056b3"})`}
+          color="white"
+          borderTopRadius="xl"
+          py={4}
+        >
+          <HStack>
+            <Box p={2} bg="whiteAlpha.200" borderRadius="md">
+              <Text fontSize="lg">📄</Text>
+            </Box>
+            <Text fontSize="lg" fontWeight="bold">
+              Reçu de Paiement N° {receiptNumber}
+            </Text>
+          </HStack>
+        </ModalHeader>
+        <ModalCloseButton color="white" _hover={{ bg: "whiteAlpha.200" }} />
         
-        <ModalBody>
+        <ModalBody p={6} maxH="70vh" overflowY="auto">
           <div ref={receiptRef}>
             <PaymentReceipt
               paiement={paiement}
@@ -115,24 +138,53 @@ const ReceiptModal = ({
           </div>
         </ModalBody>
 
-        <ModalFooter>
+        <ModalFooter 
+          bg="white" 
+          borderBottomRadius="xl" 
+          borderTop="1px solid" 
+          borderColor="gray.200"
+          py={4}
+        >
           <HStack spacing={3}>
             <Button
               leftIcon={<MdPrint />}
               colorScheme="blue"
               variant="outline"
               onClick={handlePrint}
+              size="md"
+              borderRadius="full"
+              _hover={{ 
+                transform: "translateY(-2px)",
+                boxShadow: "lg"
+              }}
+              transition="all 0.2s"
             >
               Imprimer
             </Button>
             <Button
               leftIcon={<MdFileDownload />}
-              colorScheme="green"
+              style={{
+                background: `linear-gradient(135deg, ${companyColors?.primary || "#007BFF"}, ${companyColors?.secondary || "#0056b3"})`,
+                color: "white"
+              }}
               onClick={handleDownload}
+              size="md"
+              borderRadius="full"
+              _hover={{ 
+                transform: "translateY(-2px)",
+                boxShadow: "xl"
+              }}
+              transition="all 0.2s"
             >
               Télécharger PDF
             </Button>
-            <Button variant="ghost" onClick={onClose}>
+            <Button 
+              variant="ghost" 
+              onClick={onClose}
+              size="md"
+              borderRadius="full"
+              _hover={{ bg: "gray.100" }}
+            >
               Fermer
             </Button>
           </HStack>
