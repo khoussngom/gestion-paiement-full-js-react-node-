@@ -190,7 +190,7 @@ const LandingPage = () => {
                 >
                   Faire une Demande
                 </Button>
-                <Button
+                {/* <Button
                   size="lg"
                   variant="outline"
                   color="white"
@@ -198,7 +198,7 @@ const LandingPage = () => {
                   _hover={{ bg: 'whiteAlpha.200' }}
                 >
                   Voir une Démo
-                </Button>
+                </Button> */}
               </HStack>
 
               <HStack spacing={8} pt={4}>

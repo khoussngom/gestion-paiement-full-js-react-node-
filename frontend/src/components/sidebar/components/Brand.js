@@ -5,11 +5,13 @@ import { Flex, Text, useColorModeValue, Image, Box } from "@chakra-ui/react";
 
 // Custom components
 import { HSeparator } from "components/separator/Separator";
+import { useCompanyTheme } from "../../../contexts/CompanyThemeContext";
 
 export function SidebarBrand() {
   //   Chakra color mode
   let logoColor = useColorModeValue("navy.700", "white");
   const [entrepriseInfo, setEntrepriseInfo] = useState(null);
+  const { companyColors } = useCompanyTheme();
 
   useEffect(() => {
     // Récupérer les informations d'entreprise depuis les statistiques du dashboard
@@ -80,7 +82,7 @@ export function SidebarBrand() {
                 <Text 
                   fontSize='18px' 
                   fontWeight='bold' 
-                  color={logoColor}
+                  color={companyColors?.primary || logoColor}
                   textAlign='center'
                 >
                   {entrepriseInfo.nom}
@@ -92,7 +94,7 @@ export function SidebarBrand() {
         <Text 
           fontSize={entrepriseInfo.logo ? '16px' : '20px'} 
           fontWeight='bold' 
-          color={logoColor}
+          color={companyColors?.primary || logoColor}
           my={entrepriseInfo.logo ? '16px' : '32px'}
           textAlign='center'
           letterSpacing='wider'
@@ -110,7 +112,7 @@ export function SidebarBrand() {
       <Text 
         fontSize='20px' 
         fontWeight='bold' 
-        color={logoColor}
+        color={companyColors?.primary || logoColor}
         my='32px'
         textAlign='center'
         letterSpacing='wider'

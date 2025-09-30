@@ -42,6 +42,7 @@ export class ServiceDashboard {
       adresse: entreprise?.adresse,
       devise: entreprise?.devise,
       logo: entreprise?.logo,
+      couleurPrimaire: entreprise?.couleurPrimaire,
       telephone: entreprise?.telephone,
       email: entreprise?.email,
       secteurActivite: entreprise?.secteurActivite

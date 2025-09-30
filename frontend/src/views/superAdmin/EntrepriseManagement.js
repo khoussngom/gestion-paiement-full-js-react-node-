@@ -38,6 +38,7 @@ import {
 } from '@chakra-ui/react';
 import { MdAdd, MdMoreVert, MdEdit, MdDelete, MdVisibility, MdBusiness } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
+import ColorPicker from '../../components/colorPicker/ColorPicker';
 
 const EntrepriseManagement = () => {
   const [entreprises, setEntreprises] = useState([]);
@@ -49,6 +50,7 @@ const EntrepriseManagement = () => {
     telephone: '',
     email: '',
     logo: '',
+    couleurPrimaire: '#007BFF',
     devise: 'FCFA',
     typePeriode: 'MENSUEL',
     adminEmail: '',
@@ -278,6 +280,7 @@ const EntrepriseManagement = () => {
       telephone: '',
       email: '',
       logo: '',
+      couleurPrimaire: '#007BFF',
       devise: 'FCFA',
       typePeriode: 'MENSUEL',
       adminEmail: '',
@@ -511,6 +514,14 @@ const EntrepriseManagement = () => {
                   value={formData.logo}
                   onChange={(e) => setFormData({...formData, logo: e.target.value})}
                   placeholder="https://exemple.com/logo.png"
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Couleur Principale</FormLabel>
+                <ColorPicker
+                  selectedColor={formData.couleurPrimaire}
+                  onColorChange={(color) => setFormData({...formData, couleurPrimaire: color})}
                 />
               </FormControl>
 

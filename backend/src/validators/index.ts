@@ -10,6 +10,7 @@ export const schemaCreerEntreprise = z.object({
   telephone: z.string().optional(),
   email: z.string().email(MESSAGES_VALIDATION.EMAIL_INVALIDE).optional(),
   logo: z.string().optional(),
+  couleurPrimaire: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Format de couleur invalide').default('#007BFF'),
   devise: z.string().default('FCFA'),
   typePeriode: z.string().default('MENSUEL')
 });

@@ -11,6 +11,7 @@ import {
 import initialTheme from './theme/theme'; //  { themeGreen }
 import { useState } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import { CompanyThemeProvider } from './contexts/CompanyThemeContext';
 // Chakra imports
 
 export default function Main() {
@@ -19,18 +20,20 @@ export default function Main() {
   return (
     <ChakraProvider theme={currentTheme}>
       <AuthProvider>
-        <Routes>
-          <Route path="auth/*" element={<AuthLayout />} />
-          <Route
-            path="admin/*"
-            element={
-              <ProtectedRoute>
-                <AdminLayout theme={currentTheme} setTheme={setCurrentTheme} />
-              </ProtectedRoute>
-            }
+        <CompanyThemeProvider>
+          <Routes>
+            <Route path="auth/*" element={<AuthLayout />} />
+            <Route
+              path="admin/*"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout theme={currentTheme} setTheme={setCurrentTheme} />
+                </ProtectedRoute>
+              }
           />
-          <Route path="/" element={<Navigate to="/auth/sign-in" replace />} />
-        </Routes>
+            <Route path="/" element={<Navigate to="/auth/landing" replace />} />
+          </Routes>
+        </CompanyThemeProvider>
       </AuthProvider>
     </ChakraProvider>
   );

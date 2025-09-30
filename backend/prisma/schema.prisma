@@ -55,6 +55,7 @@ model Entreprise {
   telephone        String?
   email            String?
   logo             String?
+  couleurPrimaire  String?  @default("#4318FF")
   secteurActivite  String?
   devise           String   @default("FCFA")
   typePeriode      String   @default("MENSUEL")

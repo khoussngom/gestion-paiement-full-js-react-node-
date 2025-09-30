@@ -31,6 +31,7 @@ import {
   MdBusiness, 
   MdImage
 } from 'react-icons/md';
+import ColorPicker from 'components/colorPicker/ColorPicker';
 
 const CompanySettings = () => {
   const [companyData, setCompanyData] = useState(null);
@@ -50,7 +51,8 @@ const CompanySettings = () => {
     adresse: '',
     telephone: '',
     email: '',
-    description: ''
+    description: '',
+    couleurPrimaire: '#4318FF'
   });
 
   const loadCompanyData = useCallback(async () => {
@@ -73,7 +75,8 @@ const CompanySettings = () => {
             adresse: entreprise.adresse || '',
             telephone: entreprise.telephone || '',
             email: entreprise.email || '',
-            description: entreprise.description || ''
+            description: entreprise.description || '',
+            couleurPrimaire: entreprise.couleurPrimaire || '#4318FF'
           });
           if (entreprise.logo) {
             setLogoPreview(entreprise.logo);
@@ -436,6 +439,19 @@ const CompanySettings = () => {
                     placeholder="Description de votre entreprise"
                   />
                 </FormControl>
+
+                {/* Color Picker */}
+                <Box w="full">
+                  <ColorPicker
+                    selectedColor={formData.couleurPrimaire}
+                    onColorChange={(color) => setFormData({...formData, couleurPrimaire: color})}
+                    label="Couleur principale de l'interface"
+                    isDisabled={saving}
+                  />
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    Cette couleur sera utilisée pour personnaliser l'interface de votre entreprise
+                  </Text>
+                </Box>
               </VStack>
             </VStack>
           </CardBody>
