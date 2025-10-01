@@ -44,7 +44,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
   const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Import
   const toast = useToast();
 
-  const requiredColumns = ['nom', 'prenom', 'email', 'salaire'];
+  const requiredColumns = ['nom', 'prenom', 'email', 'salaire', 'typeContrat'];
   const optionalColumns = ['poste', 'telephone', 'adresse', 'dateEmbauche'];
   
   // Template Excel pour téléchargement
@@ -55,6 +55,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
         prenom: 'Jean',
         email: 'jean.dupont@email.com',
         salaire: 500000,
+        typeContrat: 'SALARIE',
         poste: 'Développeur',
         telephone: '774123456',
         adresse: 'Dakar, Sénégal',
@@ -65,6 +66,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
         prenom: 'Marie',
         email: 'marie.martin@email.com',
         salaire: 600000,
+        typeContrat: 'FREELANCE',
         poste: 'Designer',
         telephone: '775234567',
         adresse: 'Thiès, Sénégal',
@@ -123,6 +125,12 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
         rowErrors.push('Le salaire doit être un nombre positif');
       }
 
+      // Validation type de contrat
+      const validContractTypes = ['SALARIE', 'FREELANCE', 'STAGE'];
+      if (row.typeContrat && !validContractTypes.includes(row.typeContrat.toUpperCase())) {
+        rowErrors.push(`Type de contrat invalide. Valeurs acceptées: ${validContractTypes.join(', ')}`);
+      }
+
       // Validation téléphone
       if (row.telephone && !/^[0-9+\-\s()]+$/.test(row.telephone)) {
         newWarnings.push(`Ligne ${rowNumber}: Format de téléphone suspect`);
@@ -142,6 +150,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
         validData.push({
           ...row,
           salaire: parseFloat(row.salaire),
+          typeContrat: row.typeContrat?.toUpperCase(),
           dateEmbauche: row.dateEmbauche ? new Date(row.dateEmbauche).toISOString().split('T')[0] : null
         });
       }
@@ -317,6 +326,10 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
             <Text as="span" fontWeight="bold">salaire</Text> (obligatoire)
           </ListItem>
           <ListItem fontSize="sm">
+            <ListIcon as={MdCheckCircle} color="red.500" />
+            <Text as="span" fontWeight="bold">typeContrat</Text> (obligatoire - SALARIE, FREELANCE ou STAGE)
+          </ListItem>
+          <ListItem fontSize="sm">
             <ListIcon as={MdCheckCircle} color="green.500" />
             <Text as="span" fontWeight="bold">poste</Text> (optionnel)
           </ListItem>
@@ -417,6 +430,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
                   <Th>Prénom</Th>
                   <Th>Email</Th>
                   <Th>Salaire</Th>
+                  <Th>Type Contrat</Th>
                   <Th>Poste</Th>
                 </Tr>
               </Thead>
@@ -427,6 +441,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
                     <Td>{row.prenom}</Td>
                     <Td>{row.email}</Td>
                     <Td>{row.salaire?.toLocaleString()} FCFA</Td>
+                    <Td>{row.typeContrat}</Td>
                     <Td>{row.poste || '-'}</Td>
                   </Tr>
                 ))}
