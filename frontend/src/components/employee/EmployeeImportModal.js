@@ -51,22 +51,22 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
   const downloadTemplate = () => {
     const templateData = [
       {
-        nom: 'Dupont',
-        prenom: 'Jean',
-        email: 'jean.dupont@email.com',
+        nom: 'Ngom',
+        prenom: 'Khouss',
+        email: 'khouss@email.com',
         salaire: 500000,
-        typeContrat: 'SALARIE',
+        typeContrat: 'SALAIRE_FIXE',
         poste: 'Développeur',
         telephone: '774123456',
         adresse: 'Dakar, Sénégal',
         dateEmbauche: '2024-01-15'
       },
       {
-        nom: 'Martin',
-        prenom: 'Marie',
-        email: 'marie.martin@email.com',
-        salaire: 600000,
-        typeContrat: 'FREELANCE',
+        nom: 'senghor',
+        prenom: 'fallou',
+        email: 'fallou@email.com',
+        salaire: 10000,
+        typeContrat: 'HONORAIRE',
         poste: 'Designer',
         telephone: '775234567',
         adresse: 'Thiès, Sénégal',
@@ -126,7 +126,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
       }
 
       // Validation type de contrat
-      const validContractTypes = ['SALARIE', 'FREELANCE', 'STAGE'];
+      const validContractTypes = ['SALAIRE_FIXE', 'HONORAIRE'];
       if (row.typeContrat && !validContractTypes.includes(row.typeContrat.toUpperCase())) {
         rowErrors.push(`Type de contrat invalide. Valeurs acceptées: ${validContractTypes.join(', ')}`);
       }
@@ -327,7 +327,7 @@ const EmployeeImportModal = ({ isOpen, onClose, onImportComplete }) => {
           </ListItem>
           <ListItem fontSize="sm">
             <ListIcon as={MdCheckCircle} color="red.500" />
-            <Text as="span" fontWeight="bold">typeContrat</Text> (obligatoire - SALARIE, FREELANCE ou STAGE)
+            <Text as="span" fontWeight="bold">typeContrat</Text> (obligatoire - SALAIRE_FIXE, HONORAIRE)
           </ListItem>
           <ListItem fontSize="sm">
             <ListIcon as={MdCheckCircle} color="green.500" />

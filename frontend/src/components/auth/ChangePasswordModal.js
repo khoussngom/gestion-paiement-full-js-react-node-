@@ -15,7 +15,6 @@ import {
   VStack,
   Text
 } from '@chakra-ui/react';
-import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
 const ChangePasswordModal = ({ isOpen, onClose, user }) => {
@@ -28,28 +27,60 @@ const ChangePasswordModal = ({ isOpen, onClose, user }) => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setError('');
+    
+    // Vérification que l'utilisateur est défini
+    if (!user || !user.id) {
+      setError('Utilisateur non identifié');
+      return;
+    }
+    
     if (!newPassword || !confirmPassword) {
       setError('Veuillez remplir tous les champs');
       return;
     }
+    
     if (newPassword !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
       return;
     }
+    
+    if (newPassword.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+    
     setLoading(true);
     try {
-      await api.put(`/utilisateurs/${user.id}/password`, { motDePasse: newPassword });
+      const response = await api.put(`/utilisateurs/${user.id}/password`, { 
+        motDePasse: newPassword 
+      });
+      
+      if (response.data.succes) {
+        toast({
+          title: 'Succès',
+          description: response.data.message || 'Votre mot de passe a été mis à jour avec succès.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        onClose();
+        // Rechargement pour actualiser l'état de l'utilisateur
+        window.location.reload();
+      } else {
+        setError(response.data.message || 'Erreur lors du changement de mot de passe');
+      }
+    } catch (err) {
+      console.error('Erreur changement mot de passe:', err);
+      const errorMessage = err.response?.data?.message || 'Erreur lors du changement de mot de passe';
+      setError(errorMessage);
+      
       toast({
-        title: 'Mot de passe changé',
-        description: 'Votre mot de passe a été mis à jour avec succès.',
-        status: 'success',
-        duration: 3000,
+        title: 'Erreur',
+        description: errorMessage,
+        status: 'error',
+        duration: 5000,
         isClosable: true,
       });
-      onClose();
-      window.location.reload();
-    } catch (err) {
-      setError('Erreur lors du changement de mot de passe');
     } finally {
       setLoading(false);
     }

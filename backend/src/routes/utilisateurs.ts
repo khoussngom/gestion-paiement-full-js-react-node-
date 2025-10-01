@@ -272,25 +272,60 @@ routeurUtilisateurs.patch('/:id/toggle-status', async (req, res) => {
 routeurUtilisateurs.put('/:id/password', async (req, res) => {
   try {
     const { id } = req.params;
-    const { ancienMotDePasse, nouveauMotDePasse } = req.body;
+    const { ancienMotDePasse, nouveauMotDePasse, motDePasse } = req.body;
     const utilisateur = await utilisateurRepo.getById(id);
+    
     if (!utilisateur) {
       return res.status(404).json({ succes: false, message: 'Utilisateur introuvable' });
     }
-    // Vérifier l'ancien mot de passe
-    const match = await bcrypt.compare(ancienMotDePasse, utilisateur.motDePasse);
-    if (!match) {
-      return res.status(400).json({ succes: false, message: 'Ancien mot de passe incorrect' });
+
+    // Pour la première connexion (doitChangerMotDePasse = true), pas besoin de l'ancien mot de passe
+    if (utilisateur.doitChangerMotDePasse && motDePasse) {
+      // Première connexion : utiliser motDePasse directement
+      const motDePasseHache = await bcrypt.hash(motDePasse, 10);
+      await utilisateurRepo.update(id, {
+        motDePasse: motDePasseHache,
+        doitChangerMotDePasse: false
+      });
+      
+      res.status(200).json({ 
+        succes: true, 
+        message: 'Mot de passe mis à jour avec succès' 
+      });
+    } else {
+      // Changement normal : vérifier l'ancien mot de passe
+      if (!ancienMotDePasse || !nouveauMotDePasse) {
+        return res.status(400).json({ 
+          succes: false, 
+          message: 'Ancien et nouveau mot de passe requis' 
+        });
+      }
+      
+      const match = await bcrypt.compare(ancienMotDePasse, utilisateur.motDePasse);
+      if (!match) {
+        return res.status(400).json({ 
+          succes: false, 
+          message: 'Ancien mot de passe incorrect' 
+        });
+      }
+      
+      const motDePasseHache = await bcrypt.hash(nouveauMotDePasse, 10);
+      await utilisateurRepo.update(id, {
+        motDePasse: motDePasseHache,
+        doitChangerMotDePasse: false
+      });
+      
+      res.status(200).json({ 
+        succes: true, 
+        message: 'Mot de passe mis à jour avec succès' 
+      });
     }
-    // Mettre à jour le mot de passe et le flag
-    const motDePasseHache = await bcrypt.hash(nouveauMotDePasse, 10);
-    await utilisateurRepo.update(id, {
-      motDePasse: motDePasseHache,
-      doitChangerMotDePasse: false
-    });
-    res.status(200).json({ succes: true, message: 'Mot de passe mis à jour' });
   } catch (error: any) {
-    res.status(500).json({ succes: false, message: 'Erreur serveur', erreur: error.message });
+    res.status(500).json({ 
+      succes: false, 
+      message: 'Erreur serveur', 
+      erreur: error.message 
+    });
   }
 });
 
