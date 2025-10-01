@@ -117,7 +117,16 @@ routeurDashboard.get('/statistiques', async (req, res) => {
 
     // Récupérer les informations de l'entreprise
     const entreprise = await prisma.entreprise.findUnique({
-      where: { id: entrepriseId }
+      where: { id: entrepriseId },
+      select: {
+        id: true,
+        nom: true,
+        adresse: true,
+        logo: true,
+        couleurPrimaire: true,
+        telephone: true,
+        email: true
+      }
     });
 
     // Récupérer les derniers paiements
@@ -153,7 +162,11 @@ routeurDashboard.get('/statistiques', async (req, res) => {
       entreprise: {
         id: entreprise?.id,
         nom: entreprise?.nom,
-        adresse: entreprise?.adresse
+        adresse: entreprise?.adresse,
+        logo: entreprise?.logo,
+        couleurPrimaire: entreprise?.couleurPrimaire,
+        telephone: entreprise?.telephone,
+        email: entreprise?.email
       },
       employes: {
         total: totalEmployes,

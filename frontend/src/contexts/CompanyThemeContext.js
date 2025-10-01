@@ -12,6 +12,7 @@ export const useCompanyTheme = () => {
 
 export const CompanyThemeProvider = ({ children }) => {
   const [companyColor, setCompanyColor] = useState('#4318FF'); // Couleur par défaut
+  const [companyColors, setCompanyColors] = useState({ primary: '#4318FF' });
   const [isLoading, setIsLoading] = useState(true);
 
   const loadCompanyTheme = async () => {
@@ -29,6 +30,10 @@ export const CompanyThemeProvider = ({ children }) => {
         if (data.succes && data.donnees && data.donnees.entreprise) {
           const couleur = data.donnees.entreprise.couleurPrimaire || '#4318FF';
           setCompanyColor(couleur);
+          setCompanyColors({ 
+            primary: couleur,
+            secondary: couleur // Pour l'instant, même couleur
+          });
           
           // Mettre à jour les variables CSS personnalisées
           document.documentElement.style.setProperty('--company-primary', couleur);
@@ -61,6 +66,10 @@ export const CompanyThemeProvider = ({ children }) => {
 
   const updateCompanyColor = (newColor) => {
     setCompanyColor(newColor);
+    setCompanyColors({ 
+      primary: newColor,
+      secondary: newColor
+    });
     document.documentElement.style.setProperty('--company-primary', newColor);
     document.documentElement.style.setProperty('--chakra-colors-brand-500', newColor);
     
@@ -142,6 +151,7 @@ export const CompanyThemeProvider = ({ children }) => {
 
   const value = {
     companyColor,
+    companyColors,
     isLoading,
     updateCompanyColor,
     loadCompanyTheme,
