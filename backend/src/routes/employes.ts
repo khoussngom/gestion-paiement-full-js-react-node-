@@ -299,4 +299,67 @@ routeurEmployes.get('/statistiques', async (req, res) => {
   }
 });
 
+// POST /employes/import - Importer des employés en masse
+routeurEmployes.post('/import', async (req, res) => {
+  try {
+    const { employes } = req.body;
+    const entrepriseId = req.utilisateur?.entrepriseId;
+    
+    if (!entrepriseId) {
+      return res.status(403).json({
+        succes: false,
+        message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
+      });
+    }
+
+    if (!employes || !Array.isArray(employes) || employes.length === 0) {
+      return res.status(400).json({
+        succes: false,
+        message: 'Aucune donnée d\'employé fournie'
+      });
+    }
+
+    const results = {
+      imported: 0,
+      failed: 0,
+      errors: [] as Array<{ligne: number, donnees: any, erreur: string}>
+    };
+
+    // Traitement en lot des employés
+    for (let i = 0; i < employes.length; i++) {
+      const employeData = employes[i];
+      try {
+        // Validation avec le schéma existant
+        const donneesValidees = schemaCreerEmploye.parse({
+          ...employeData,
+          entrepriseId,
+          actif: true
+        });
+
+        await employeRepo.create(donneesValidees);
+        results.imported++;
+      } catch (error: any) {
+        results.failed++;
+        results.errors.push({
+          ligne: i + 1,
+          donnees: employeData,
+          erreur: error.message || 'Erreur de validation'
+        });
+      }
+    }
+
+    res.status(200).json({
+      succes: true,
+      message: `Import terminé: ${results.imported} réussi(s), ${results.failed} échec(s)`,
+      donnees: results
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      succes: false,
+      message: MESSAGES_ERREUR.ERREUR_SERVEUR,
+      erreur: error.message
+    });
+  }
+});
+
 export default routeurEmployes;

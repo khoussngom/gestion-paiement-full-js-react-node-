@@ -34,10 +34,11 @@ import {
   MenuList,
   MenuItem,
 } from '@chakra-ui/react';
-import { MdAdd, MdEdit, MdDelete, MdMoreVert, MdVisibility } from 'react-icons/md';
+import { MdAdd, MdEdit, MdDelete, MdMoreVert, MdVisibility, MdFileUpload } from 'react-icons/md';
 import Card from 'components/card/Card';
 import { employeeService } from 'services/employeeService';
 import EmployeeModal from 'components/modals/EmployeeModal';
+import EmployeeImportModal from 'components/employee/EmployeeImportModal';
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -49,6 +50,7 @@ export default function Employees() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
+  const { isOpen: isImportOpen, onOpen: onImportOpen, onClose: onImportClose } = useDisclosure();
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   
@@ -191,13 +193,23 @@ export default function Employees() {
             <Text fontSize="2xl" fontWeight="700" color={textColor}>
               Gestion des Employés
             </Text>
-            <Button
-              leftIcon={<MdAdd />}
-              colorScheme="brand"
-              onClick={onAddOpen}
-            >
-              Ajouter un Employé
-            </Button>
+            <HStack spacing={3}>
+              <Button
+                leftIcon={<MdFileUpload />}
+                variant="outline"
+                colorScheme="blue"
+                onClick={onImportOpen}
+              >
+                Importer Excel
+              </Button>
+              <Button
+                leftIcon={<MdAdd />}
+                colorScheme="brand"
+                onClick={onAddOpen}
+              >
+                Ajouter un Employé
+              </Button>
+            </HStack>
           </HStack>
 
           {/* Filtres */}
@@ -411,6 +423,13 @@ export default function Employees() {
         }}
         employee={isEditOpen ? selectedEmployee : null}
         onSuccess={loadEmployees}
+      />
+
+      {/* Modal d'import Excel */}
+      <EmployeeImportModal
+        isOpen={isImportOpen}
+        onClose={onImportClose}
+        onImportComplete={loadEmployees}
       />
     </Box>
   );
