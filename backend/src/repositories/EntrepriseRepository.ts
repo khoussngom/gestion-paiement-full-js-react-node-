@@ -5,13 +5,28 @@ import { Entreprise } from '@prisma/client';
 export class EntrepriseRepository extends BasePrismaRepository {
   
   async create(donnees: CreerEntrepriseDto): Promise<Entreprise> {
-    return await this.prisma.entreprise.create({
-      data: {
-        ...donnees,
-        dateCreation: new Date(),
-        dateModification: new Date()
-      }
-    });
+    console.log('📊 [REPO] Données reçues pour création entreprise:', donnees);
+    
+    // Filtrer les données pour ne garder que les champs de l'entreprise
+    const { adminEmail, adminMotDePasse, adminNom, adminPrenom, ...donneesEntreprise } = donnees;
+    
+    console.log('🏢 [REPO] Données filtrées pour entreprise:', donneesEntreprise);
+    
+    try {
+      const entreprise = await this.prisma.entreprise.create({
+        data: {
+          ...donneesEntreprise,
+          dateCreation: new Date(),
+          dateModification: new Date()
+        }
+      });
+      
+      console.log('✅ [REPO] Entreprise créée avec succès:', entreprise.id);
+      return entreprise;
+    } catch (error) {
+      console.error('❌ [REPO] Erreur création entreprise:', error);
+      throw error;
+    }
   }
 
   async getById(id: string): Promise<Entreprise | null> {

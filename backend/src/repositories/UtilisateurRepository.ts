@@ -45,13 +45,21 @@ export class UtilisateurRepository extends BasePrismaRepository {
   }
 
   async create(donnees: CreerUtilisateurDto): Promise<Utilisateur> {
-    const utilisateur = await this.prisma.utilisateur.create({
-      data: donnees,
-      include: {
-        entreprise: true
-      }
-    });
-    return new Utilisateur(utilisateur);
+    console.log('👤 [USER REPO] Données reçues pour création utilisateur:', donnees);
+    try {
+      console.log('💾 [USER REPO] Appel Prisma create...');
+      const utilisateur = await this.prisma.utilisateur.create({
+        data: donnees,
+        include: {
+          entreprise: true
+        }
+      });
+      console.log('✅ [USER REPO] Utilisateur créé avec succès:', utilisateur.id, utilisateur.email);
+      return new Utilisateur(utilisateur);
+    } catch (error) {
+      console.error('❌ [USER REPO] Erreur création utilisateur:', error);
+      throw error;
+    }
   }
 
   async update(id: string, donnees: Partial<CreerUtilisateurDto>): Promise<Utilisateur> {

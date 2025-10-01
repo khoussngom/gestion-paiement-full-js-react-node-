@@ -127,12 +127,22 @@ routeurEntreprises.post('/', async (req, res) => {
       });
     }
 
+    console.log('🔍 [VALIDATION] Tentative validation des données...');
     const donneesValidees = schemaCreerEntreprise.parse(req.body);
+    console.log('✅ [VALIDATION] Données validées avec succès:', donneesValidees);
+    
+    console.log('🏗️ [CREATION] Création entreprise en cours...');
     const nouvelleEntreprise = await entrepriseRepo.create(donneesValidees);
+    console.log('✅ [CREATION] Entreprise créée avec succès:', nouvelleEntreprise.id, nouvelleEntreprise.nom);
+
+    console.log('🏢 [ENTREPRISE CREATION] Données reçues:', req.body);
 
     let motDePasseAdmin = req.body.adminMotDePasse;
     // Créer automatiquement un admin pour cette entreprise si fourni
     if (req.body.adminEmail && motDePasseAdmin) {
+      console.log('👤 [ADMIN CREATION] Création admin pour entreprise:', nouvelleEntreprise.nom);
+      console.log('👤 [ADMIN CREATION] Email admin:', req.body.adminEmail);
+      
       const motDePasseHache = await bcrypt.hash(motDePasseAdmin, 10);
       const nouvelAdmin = await utilisateurRepo.create({
         nom: req.body.adminNom || 'Admin',
@@ -143,17 +153,24 @@ routeurEntreprises.post('/', async (req, res) => {
         entrepriseId: nouvelleEntreprise.id,
         doitChangerMotDePasse: true
       });
+      
+      console.log('✅ [ADMIN CREATION] Admin créé avec ID:', nouvelAdmin.id);
+      
       // Envoi de l'email à l'admin
       try {
+        console.log('📧 [EMAIL TRIGGER] Déclenchement envoi email à:', req.body.adminEmail);
         await sendAdminWelcomeMail({
           to: req.body.adminEmail,
           nomEntreprise: nouvelleEntreprise.nom,
           emailAdmin: req.body.adminEmail,
           motDePasse: motDePasseAdmin
         });
+        console.log('✅ [EMAIL TRIGGER] Email envoyé avec succès');
       } catch (err) {
-        console.error('Erreur envoi email admin:', err);
+        console.error('❌ [EMAIL TRIGGER] Erreur envoi email admin:', err);
       }
+    } else {
+      console.log('⚠️ [ADMIN CREATION] Pas d\'admin à créer - email ou mot de passe manquant');
     }
 
     res.status(201).json({

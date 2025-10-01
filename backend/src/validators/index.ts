@@ -12,7 +12,12 @@ export const schemaCreerEntreprise = z.object({
   logo: z.string().optional(),
   couleurPrimaire: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Format de couleur invalide').default('#007BFF'),
   devise: z.string().default('FCFA'),
-  typePeriode: z.string().default('MENSUEL')
+  typePeriode: z.string().default('MENSUEL'),
+  // Champs optionnels pour l'admin
+  adminEmail: z.string().email(MESSAGES_VALIDATION.EMAIL_INVALIDE).optional(),
+  adminMotDePasse: z.string().min(6, MESSAGES_VALIDATION.MOT_DE_PASSE_TROP_COURT).optional(),
+  adminNom: z.string().optional(),
+  adminPrenom: z.string().optional()
 });
 
 export const schemaModifierEntreprise = schemaCreerEntreprise.partial();

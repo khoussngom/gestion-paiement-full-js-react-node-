@@ -10,7 +10,22 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendAdminWelcomeMail({ to, nomEntreprise, emailAdmin, motDePasse }) {
+export async function sendAdminWelcomeMail({ to, nomEntreprise, emailAdmin, motDePasse }: {
+  to: string;
+  nomEntreprise: string;
+  emailAdmin: string;
+  motDePasse: string;
+}) {
+  console.log('📧 [EMAIL SERVICE] Début envoi email admin welcome');
+  console.log('📧 [EMAIL SERVICE] Destinataire:', to);
+  console.log('📧 [EMAIL SERVICE] Entreprise:', nomEntreprise);
+  console.log('📧 [EMAIL SERVICE] Configuration SMTP:', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    user: process.env.SMTP_USER,
+    from: process.env.SMTP_FROM
+  });
+
   const mailOptions = {
     from: process.env.SMTP_FROM || 'no-reply@gestion-paie.com',
     to,
@@ -25,10 +40,21 @@ export async function sendAdminWelcomeMail({ to, nomEntreprise, emailAdmin, motD
       <small>Cet email est généré automatiquement, merci de ne pas répondre.</small>
     `,
   };
+
+  console.log('📧 [EMAIL SERVICE] Options email préparées:', {
+    from: mailOptions.from,
+    to: mailOptions.to,
+    subject: mailOptions.subject
+  });
+
   try {
-    await transporter.sendMail(mailOptions);
+    console.log('📧 [EMAIL SERVICE] Tentative d\'envoi...');
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ [EMAIL SERVICE] Email envoyé avec succès!');
+    console.log('📧 [EMAIL SERVICE] Résultat:', result);
+    return result;
   } catch (error) {
-    console.error('Erreur lors de l\'envoi de l\'email admin:', error);
+    console.error('❌ [EMAIL SERVICE] Erreur lors de l\'envoi de l\'email admin:', error);
     throw new Error('Impossible d\'envoyer l\'email à l\'administrateur.');
   }
 }

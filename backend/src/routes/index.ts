@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import routeurAuthentification from './authentification_new';
-import routeurEmployes from './employes_new';
+import routeurAuthentification from './authentification';
+import routeurEmployes from './employes';
 import routeurCyclesPaie from './cyclesPaie';
-import routeurDashboard from './dashboard_clean';
+import routeurDashboard from './dashboard';
 import routeurPaiements from './paiements';
 import routeurDemandes from './demandes';
 import routeurEntreprises from './entreprises';
