@@ -25,6 +25,7 @@ export interface IUtilisateur {
   dateCreation: Date;
   dateModification: Date;
   actif: boolean;
+  doitChangerMotDePasse: boolean;
 }
 
 export interface IEmploye {

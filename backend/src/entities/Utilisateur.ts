@@ -12,6 +12,7 @@ export class Utilisateur implements IUtilisateur {
   dateCreation: Date;
   dateModification: Date;
   actif: boolean;
+  doitChangerMotDePasse: boolean;
 
   constructor(donnees: any) {
     this.id = donnees.id || '';
@@ -24,6 +25,7 @@ export class Utilisateur implements IUtilisateur {
     this.dateCreation = donnees.dateCreation || new Date();
     this.dateModification = donnees.dateModification || new Date();
     this.actif = donnees.actif !== undefined ? donnees.actif : true;
+    this.doitChangerMotDePasse = donnees.doitChangerMotDePasse !== undefined ? donnees.doitChangerMotDePasse : true;
   }
 
   obtenirNomComplet(): string {

@@ -176,7 +176,14 @@ routeurEntreprises.post('/', async (req, res) => {
     res.status(201).json({
       succes: true,
       message: MESSAGES_SUCCES.ENTREPRISE_CREEE,
-      donnees: nouvelleEntreprise
+      donnees: {
+        entreprise: nouvelleEntreprise,
+        adminCreated: req.body.adminEmail ? {
+          email: req.body.adminEmail,
+          tempPassword: motDePasseAdmin,
+          needsPasswordChange: true
+        } : null
+      }
     });
   } catch (error: any) {
     res.status(400).json({

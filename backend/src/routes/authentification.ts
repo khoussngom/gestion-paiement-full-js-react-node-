@@ -61,7 +61,8 @@ routeurAuthentification.post('/connexion', async (req, res) => {
           prenom: utilisateur.prenom,
           email: utilisateur.email,
           role: utilisateur.role,
-          entrepriseId: utilisateur.entrepriseId
+          entrepriseId: utilisateur.entrepriseId,
+          doitChangerMotDePasse: utilisateur.doitChangerMotDePasse
         },
         token
       }

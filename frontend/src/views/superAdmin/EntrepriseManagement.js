@@ -22,6 +22,7 @@ import {
   ModalCloseButton,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   Input,
   useToast,
   Badge,
@@ -45,8 +46,11 @@ const EntrepriseManagement = () => {
   const [entreprises, setEntreprises] = useState([]);
   const [selectedEntreprise, setSelectedEntreprise] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     nom: '',
     adresse: '',
@@ -68,6 +72,113 @@ const EntrepriseManagement = () => {
   
   const toast = useToast();
   const navigate = useNavigate();
+
+  // Fonctions de validation
+  const validateField = (name, value) => {
+    const newErrors = { ...errors };
+    
+    switch (name) {
+      case 'nom':
+        if (!value.trim()) {
+          newErrors.nom = 'Le nom de l\'entreprise est requis';
+        } else if (value.trim().length < 2) {
+          newErrors.nom = 'Le nom doit contenir au moins 2 caractères';
+        } else {
+          delete newErrors.nom;
+        }
+        break;
+        
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (value && !emailRegex.test(value)) {
+          newErrors.email = 'Format d\'email invalide';
+        } else {
+          delete newErrors.email;
+        }
+        break;
+        
+      case 'telephone':
+        const phoneRegex = /^[0-9+\-\s()]+$/;
+        if (value && !phoneRegex.test(value)) {
+          newErrors.telephone = 'Format de téléphone invalide';
+        } else if (value && value.replace(/[^0-9]/g, '').length < 8) {
+          newErrors.telephone = 'Le téléphone doit contenir au moins 8 chiffres';
+        } else {
+          delete newErrors.telephone;
+        }
+        break;
+        
+      case 'adresse':
+        if (value && value.trim().length < 5) {
+          newErrors.adresse = 'L\'adresse doit contenir au moins 5 caractères';
+        } else {
+          delete newErrors.adresse;
+        }
+        break;
+        
+      case 'adminEmail':
+        const adminEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (value && !adminEmailRegex.test(value)) {
+          newErrors.adminEmail = 'Format d\'email invalide';
+        } else {
+          delete newErrors.adminEmail;
+        }
+        break;
+        
+      case 'adminNom':
+        if (value && value.trim().length < 2) {
+          newErrors.adminNom = 'Le nom doit contenir au moins 2 caractères';
+        } else {
+          delete newErrors.adminNom;
+        }
+        break;
+        
+      case 'adminPrenom':
+        if (value && value.trim().length < 2) {
+          newErrors.adminPrenom = 'Le prénom doit contenir au moins 2 caractères';
+        } else {
+          delete newErrors.adminPrenom;
+        }
+        break;
+        
+      case 'adminMotDePasse':
+        if (value && value.length < 6) {
+          newErrors.adminMotDePasse = 'Le mot de passe doit contenir au moins 6 caractères';
+        } else {
+          delete newErrors.adminMotDePasse;
+        }
+        break;
+        
+      default:
+        break;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    
+    // Validation des champs requis
+    isValid = validateField('nom', formData.nom) && isValid;
+    
+    // Validation des autres champs s'ils sont remplis
+    if (formData.email) isValid = validateField('email', formData.email) && isValid;
+    if (formData.telephone) isValid = validateField('telephone', formData.telephone) && isValid;
+    if (formData.adresse) isValid = validateField('adresse', formData.adresse) && isValid;
+    if (formData.adminEmail) isValid = validateField('adminEmail', formData.adminEmail) && isValid;
+    if (formData.adminNom) isValid = validateField('adminNom', formData.adminNom) && isValid;
+    if (formData.adminPrenom) isValid = validateField('adminPrenom', formData.adminPrenom) && isValid;
+    if (formData.adminMotDePasse) isValid = validateField('adminMotDePasse', formData.adminMotDePasse) && isValid;
+    
+    return isValid;
+  };
+
+  const handleInputChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+    validateField(name, value);
+  };
 
   const loadEntreprises = useCallback(async () => {
     try {
@@ -100,7 +211,21 @@ const EntrepriseManagement = () => {
   }, [loadEntreprises]);
 
   const handleCreate = async () => {
+    // Valider le formulaire avant envoi
+    if (!validateForm()) {
+      toast({
+        title: 'Erreur de validation',
+        description: 'Veuillez corriger les erreurs dans le formulaire',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
+      setCreateLoading(true);
+      
       // D'abord créer l'entreprise
       const response = await fetch('http://localhost:3001/api/entreprises', {
         method: 'POST',
@@ -163,11 +288,15 @@ const EntrepriseManagement = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setCreateLoading(false);
     }
   };
 
   const handleEdit = async () => {
     try {
+      setEditLoading(true);
+      
       const response = await fetch(`http://localhost:3001/api/entreprises/${selectedEntreprise.id}`, {
         method: 'PUT',
         headers: {
@@ -198,6 +327,8 @@ const EntrepriseManagement = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -314,6 +445,7 @@ const EntrepriseManagement = () => {
       adminNom: '',
       adminPrenom: ''
     });
+    setErrors({});
     setSelectedEntreprise(null);
     setLogoPreview(null);
     setLogoFile(null);
@@ -528,36 +660,39 @@ const EntrepriseManagement = () => {
           <ModalBody>
             <VStack spacing={4}>
               <HStack spacing={4} w="full">
-                <FormControl isRequired>
+                <FormControl isRequired isInvalid={!!errors.nom}>
                   <FormLabel>Nom de l'entreprise</FormLabel>
                   <Input
                     value={formData.nom}
-                    onChange={(e) => setFormData({...formData, nom: e.target.value})}
+                    onChange={(e) => handleInputChange('nom', e.target.value)}
                   />
+                  <FormErrorMessage>{errors.nom}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={!!errors.email}>
                   <FormLabel>Email</FormLabel>
                   <Input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
                   />
+                  <FormErrorMessage>{errors.email}</FormErrorMessage>
                 </FormControl>
               </HStack>
               
               <HStack spacing={4} w="full">
-                <FormControl>
+                <FormControl isInvalid={!!errors.telephone}>
                   <FormLabel>Téléphone</FormLabel>
                   <Input
                     value={formData.telephone}
-                    onChange={(e) => setFormData({...formData, telephone: e.target.value})}
+                    onChange={(e) => handleInputChange('telephone', e.target.value)}
                   />
+                  <FormErrorMessage>{errors.telephone}</FormErrorMessage>
                 </FormControl>
                 <FormControl>
                   <FormLabel>Devise</FormLabel>
                   <Select
                     value={formData.devise}
-                    onChange={(e) => setFormData({...formData, devise: e.target.value})}
+                    onChange={(e) => handleInputChange('devise', e.target.value)}
                   >
                     <option value="FCFA">FCFA</option>
                     <option value="EUR">EUR</option>
@@ -566,12 +701,13 @@ const EntrepriseManagement = () => {
                 </FormControl>
               </HStack>
 
-              <FormControl>
+              <FormControl isInvalid={!!errors.adresse}>
                 <FormLabel>Adresse</FormLabel>
                 <Input
                   value={formData.adresse}
-                  onChange={(e) => setFormData({...formData, adresse: e.target.value})}
+                  onChange={(e) => handleInputChange('adresse', e.target.value)}
                 />
+                <FormErrorMessage>{errors.adresse}</FormErrorMessage>
               </FormControl>
 
               <FormControl>
@@ -614,37 +750,41 @@ const EntrepriseManagement = () => {
                 <Text fontWeight="bold" mb={3}>Administrateur de l'entreprise (optionnel)</Text>
                 <VStack spacing={3}>
                   <HStack spacing={4} w="full">
-                    <FormControl>
+                    <FormControl isInvalid={!!errors.adminNom}>
                       <FormLabel>Nom</FormLabel>
                       <Input
                         value={formData.adminNom}
-                        onChange={(e) => setFormData({...formData, adminNom: e.target.value})}
+                        onChange={(e) => handleInputChange('adminNom', e.target.value)}
                       />
+                      <FormErrorMessage>{errors.adminNom}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isInvalid={!!errors.adminPrenom}>
                       <FormLabel>Prénom</FormLabel>
                       <Input
                         value={formData.adminPrenom}
-                        onChange={(e) => setFormData({...formData, adminPrenom: e.target.value})}
+                        onChange={(e) => handleInputChange('adminPrenom', e.target.value)}
                       />
+                      <FormErrorMessage>{errors.adminPrenom}</FormErrorMessage>
                     </FormControl>
                   </HStack>
                   <HStack spacing={4} w="full">
-                    <FormControl>
+                    <FormControl isInvalid={!!errors.adminEmail}>
                       <FormLabel>Email Admin</FormLabel>
                       <Input
                         type="email"
                         value={formData.adminEmail}
-                        onChange={(e) => setFormData({...formData, adminEmail: e.target.value})}
+                        onChange={(e) => handleInputChange('adminEmail', e.target.value)}
                       />
+                      <FormErrorMessage>{errors.adminEmail}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isInvalid={!!errors.adminMotDePasse}>
                       <FormLabel>Mot de passe</FormLabel>
                       <Input
                         type="password"
                         value={formData.adminMotDePasse}
-                        onChange={(e) => setFormData({...formData, adminMotDePasse: e.target.value})}
+                        onChange={(e) => handleInputChange('adminMotDePasse', e.target.value)}
                       />
+                      <FormErrorMessage>{errors.adminMotDePasse}</FormErrorMessage>
                     </FormControl>
                   </HStack>
                 </VStack>
@@ -652,10 +792,20 @@ const EntrepriseManagement = () => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onCreateClose}>
+            <Button 
+              variant="ghost" 
+              mr={3} 
+              onClick={onCreateClose}
+              isDisabled={createLoading}
+            >
               Annuler
             </Button>
-            <Button colorScheme="blue" onClick={handleCreate}>
+            <Button 
+              colorScheme="blue" 
+              onClick={handleCreate}
+              isLoading={createLoading}
+              loadingText="Création en cours..."
+            >
               Créer
             </Button>
           </ModalFooter>
@@ -719,10 +869,20 @@ const EntrepriseManagement = () => {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onEditClose}>
+            <Button 
+              variant="ghost" 
+              mr={3} 
+              onClick={onEditClose}
+              isDisabled={editLoading}
+            >
               Annuler
             </Button>
-            <Button colorScheme="blue" onClick={handleEdit}>
+            <Button 
+              colorScheme="blue" 
+              onClick={handleEdit}
+              isLoading={editLoading}
+              loadingText="Modification en cours..."
+            >
               Modifier
             </Button>
           </ModalFooter>
