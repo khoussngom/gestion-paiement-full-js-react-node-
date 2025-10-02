@@ -37,7 +37,12 @@ export const MESSAGES_SUCCES = {
   RECU_GENERE: 'Reçu généré avec succès',
   
   // Documents
-  DOCUMENT_GENERE: 'Document généré avec succès'
+  DOCUMENT_GENERE: 'Document généré avec succès',
+  
+  // Pointages
+  POINTAGE_ENREGISTRE: 'Pointage enregistré avec succès',
+  QR_CODE_GENERE: 'Code QR généré avec succès',
+  QR_CODE_REGENERE: 'Code QR régénéré avec succès'
 } as const;
 
 export const MESSAGES_ERREUR = {
@@ -82,7 +87,12 @@ export const MESSAGES_ERREUR = {
   
   // Permissions
   PERMISSION_INSUFFISANTE: 'Permissions insuffisantes',
-  ENTREPRISE_NON_AUTORISEE: 'Accès à cette entreprise non autorisé'
+  ENTREPRISE_NON_AUTORISEE: 'Accès à cette entreprise non autorisé',
+  
+  // Pointages
+  QR_CODE_INVALIDE: 'Code QR invalide ou expiré',
+  POINTAGE_DEJA_EFFECTUE: 'Un pointage a déjà été enregistré aujourd\'hui',
+  EMPLOYE_NON_TROUVE_QR: 'Aucun employé trouvé avec ce code QR'
 } as const;
 
 export const MESSAGES_VALIDATION = {
