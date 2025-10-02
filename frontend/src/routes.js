@@ -8,6 +8,9 @@ import {
   MdWork,
   MdAttachMoney,
   MdSettings,
+  MdQrCodeScanner,
+  MdAssessment,
+  MdQrCode,
 } from 'react-icons/md';
 
 // Admin Imports - Gestion des Salariés
@@ -20,6 +23,11 @@ import SignIn from 'views/auth/signIn/SignIn';
 import LandingPage from 'views/auth/landing/LandingPage';
 import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
 import CompanySettings from 'views/admin/settings/CompanySettings';
+
+// Pointage Imports
+import VigileScanner from 'views/vigile/Scanner';
+import PointageReports from 'views/admin/pointage/Reports';
+import QRCodeManagement from 'views/admin/pointage/QRCodeManagement';
 
 const routes = [
   {
@@ -56,6 +64,30 @@ const routes = [
     path: '/company-settings',
     icon: <Icon as={MdSettings} width="20px" height="20px" color="inherit" />,
     component: <CompanySettings />,
+  },
+  {
+    name: 'Scanner QR',
+    layout: '/admin',
+    path: '/scanner',
+    icon: <Icon as={MdQrCodeScanner} width="20px" height="20px" color="inherit" />,
+    component: <VigileScanner />,
+    vigileOnly: true, // Accessible uniquement aux vigiles
+  },
+  {
+    name: 'Rapports Pointage',
+    layout: '/admin',
+    path: '/pointage-reports',
+    icon: <Icon as={MdAssessment} width="20px" height="20px" color="inherit" />,
+    component: <PointageReports />,
+    adminOnly: true, // Accessible uniquement aux admins
+  },
+  {
+    name: 'QR Codes',
+    layout: '/admin',
+    path: '/qr-management',
+    icon: <Icon as={MdQrCode} width="20px" height="20px" color="inherit" />,
+    component: <QRCodeManagement />,
+    adminOnly: true, // Accessible uniquement aux admins
   },
   {
     name: 'Profil',

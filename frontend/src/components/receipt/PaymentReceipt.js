@@ -1,6 +1,5 @@
 import React from 'react';
-import {
-  Box,
+import {Box,
   VStack,
   HStack,
   Text,

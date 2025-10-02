@@ -31,6 +31,16 @@ export function SidebarLinks(props) {
       return false;
     }
     
+    // Si c'est une route vigile only, vérifier le rôle
+    if (route.vigileOnly && user?.role !== 'VIGILE') {
+      return false;
+    }
+    
+    // Si c'est une route admin only, vérifier le rôle
+    if (route.adminOnly && !['ADMIN_ENTREPRISE', 'SUPER_ADMIN'].includes(user?.role)) {
+      return false;
+    }
+    
     return true;
   });
 

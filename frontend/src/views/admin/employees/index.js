@@ -39,6 +39,7 @@ import Card from 'components/card/Card';
 import { employeeService } from 'services/employeeService';
 import EmployeeModal from 'components/modals/EmployeeModal';
 import EmployeeImportModal from 'components/employee/EmployeeImportModal';
+import EmployeeDetailModal from 'components/employee/EmployeeDetailModal';
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -346,72 +347,15 @@ export default function Employees() {
         </TableContainer>
       </Card>
 
-      {/* Modal de visualisation */}
-      <Modal isOpen={isViewOpen} onClose={onViewClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Détails de l'employé</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {selectedEmployee && (
-              <VStack align="stretch" spacing={4}>
-                <SimpleGrid columns={2} spacing={4}>
-                  <Box>
-                    <Text fontWeight="bold">Nom complet:</Text>
-                    <Text>{selectedEmployee.nomComplet}</Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Email:</Text>
-                    <Text>{selectedEmployee.email}</Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Téléphone:</Text>
-                    <Text>{selectedEmployee.telephone || 'Non renseigné'}</Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Poste:</Text>
-                    <Text>{selectedEmployee.poste}</Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Type de contrat:</Text>
-                    <Text>{getContractTypeLabel(selectedEmployee.typeContrat)}</Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Rémunération:</Text>
-                    <Text>
-                      {selectedEmployee.typeContrat === 'SALAIRE_FIXE' 
-                        ? `${(selectedEmployee.salaireFixe || 0).toLocaleString()} FCFA/mois`
-                        : selectedEmployee.typeContrat === 'HONORAIRE'
-                        ? `${(selectedEmployee.tauxHonoraire || 0).toLocaleString()} FCFA/jour`
-                        : `${(selectedEmployee.tauxSalaireHoraire || 0).toLocaleString()} FCFA/h`
-                      }
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Date d'embauche:</Text>
-                    <Text>{new Date(selectedEmployee.dateEmbauche).toLocaleDateString()}</Text>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold">Statut:</Text>
-                    <Badge colorScheme={getStatusColor(selectedEmployee.actif)}>
-                      {selectedEmployee.actif ? 'Actif' : 'Inactif'}
-                    </Badge>
-                  </Box>
-                </SimpleGrid>
-                {selectedEmployee.adresse && (
-                  <Box>
-                    <Text fontWeight="bold">Adresse:</Text>
-                    <Text>{selectedEmployee.adresse}</Text>
-                  </Box>
-                )}
-              </VStack>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onViewClose}>Fermer</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      {/* Modal de visualisation avec pointage */}
+      <EmployeeDetailModal
+        isOpen={isViewOpen}
+        onClose={() => {
+          onViewClose();
+          setSelectedEmployee(null);
+        }}
+        employee={selectedEmployee}
+      />
 
       {/* Modal d'ajout/modification */}
       <EmployeeModal

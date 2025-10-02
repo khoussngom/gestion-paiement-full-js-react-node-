@@ -7,7 +7,8 @@ export enum TypeContrat {
 export enum RoleUtilisateur {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN_ENTREPRISE = 'ADMIN_ENTREPRISE',
-  CAISSIER = 'CAISSIER'
+  CAISSIER = 'CAISSIER',
+  VIGILE = 'VIGILE'
 }
 
 export enum TypeCyclePaie {
@@ -39,4 +40,17 @@ export enum TypePeriode {
   MENSUEL = 'MENSUEL',
   HEBDOMADAIRE = 'HEBDOMADAIRE',
   JOURNALIER = 'JOURNALIER'
+}
+
+export enum StatutPresence {
+  PRESENT = 'PRESENT',
+  RETARD = 'RETARD',
+  ABSENT = 'ABSENT',
+  CONGE = 'CONGE',
+  MALADIE = 'MALADIE'
+}
+
+export enum TypePointage {
+  ENTREE = 'ENTREE',
+  SORTIE = 'SORTIE'
 }
