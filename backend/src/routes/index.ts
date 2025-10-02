@@ -7,6 +7,7 @@ import routeurPaiements from './paiements';
 import routeurDemandes from './demandes';
 import routeurEntreprises from './entreprises';
 import routeurUtilisateurs from './utilisateurs';
+import routeurPointages from './pointages';
 import { middlewareAuthentification } from '../middleware/authentification';
 
 const routeurPrincipal = Router();
@@ -24,6 +25,7 @@ routeurPrincipal.use('/paiements', middlewareAuthentification, routeurPaiements)
 routeurPrincipal.use('/dashboard', middlewareAuthentification, routeurDashboard);
 routeurPrincipal.use('/entreprises', middlewareAuthentification, routeurEntreprises);
 routeurPrincipal.use('/utilisateurs', middlewareAuthentification, routeurUtilisateurs);
+routeurPrincipal.use('/pointages', middlewareAuthentification, routeurPointages);
 
 // Route de santé
 routeurPrincipal.get('/sante', (req, res) => {

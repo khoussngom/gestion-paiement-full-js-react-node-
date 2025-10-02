@@ -1,4 +1,4 @@
-import { TypeContrat, RoleUtilisateur, StatutCyclePaie, StatutBulletinPaie, ModePaiement } from '@/enums';
+import { TypeContrat, RoleUtilisateur, StatutCyclePaie, StatutBulletinPaie, ModePaiement, StatutPointage } from '@/enums';
 
 export interface IEntreprise {
   id: string;
@@ -40,6 +40,7 @@ export interface IEmploye {
   telephone?: string;
   email?: string;
   adresse?: string;
+  codeQR?: string;
   entrepriseId: string;
   dateEmbauche: Date;
   dateCreation: Date;
@@ -84,5 +85,18 @@ export interface IPaiement {
   reference?: string;
   notes?: string;
   datePaiement: Date;
+  dateCreation: Date;
+}
+
+export interface IPointage {
+  id: string;
+  employeId: string;
+  entrepriseId: string;
+  datePointage: Date;
+  heurePointage: Date;
+  statut: StatutPointage;
+  latitude?: string;
+  longitude?: string;
+  notes?: string;
   dateCreation: Date;
 }

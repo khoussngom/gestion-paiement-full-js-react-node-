@@ -7,7 +7,14 @@ export enum TypeContrat {
 export enum RoleUtilisateur {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN_ENTREPRISE = 'ADMIN_ENTREPRISE',
-  CAISSIER = 'CAISSIER'
+  CAISSIER = 'CAISSIER',
+  VIGILE = 'VIGILE'
+}
+
+export enum StatutPointage {
+  PRESENT = 'PRESENT',
+  RETARD = 'RETARD',
+  ABSENT = 'ABSENT'
 }
 
 export enum StatutCyclePaie {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TypeContrat, StatutCyclePaie, ModePaiement } from '@/enums';
+import { TypeContrat, StatutCyclePaie, ModePaiement, StatutPointage } from '@/enums';
 import { RoleUtilisateur } from '@prisma/client';
 import { MESSAGES_VALIDATION } from '@/enums/messages';
 
@@ -129,6 +129,20 @@ export const schemaCreerPaiement = z.object({
   datePaiement: z.coerce.date().optional()
 });
 
+// Validateur pour le pointage
+export const schemaEnregistrerPointage = z.object({
+  codeQR: z.string().min(1, MESSAGES_VALIDATION.CHAMP_REQUIS),
+  latitude: z.string().optional(),
+  longitude: z.string().optional()
+});
+
+export const schemaFiltresPointage = z.object({
+  dateDebut: z.coerce.date().optional(),
+  dateFin: z.coerce.date().optional(),
+  employeId: z.string().optional(),
+  statut: z.string().optional()
+});
+
 // Types TypeScript dérivés des schémas Zod
 export type CreerEntrepriseDto = z.infer<typeof schemaCreerEntreprise>;
 export type ModifierEntrepriseDto = z.infer<typeof schemaModifierEntreprise>;
@@ -142,3 +156,5 @@ export type ModifierCyclePaieDto = z.infer<typeof schemaModifierCyclePaie>;
 export type CreerBulletinPaieDto = z.infer<typeof schemaCreerBulletinPaie>;
 export type ModifierBulletinPaieDto = z.infer<typeof schemaModifierBulletinPaie>;
 export type CreerPaiementDto = z.infer<typeof schemaCreerPaiement>;
+export type EnregistrerPointageDto = z.infer<typeof schemaEnregistrerPointage>;
+export type FiltresPointageDto = z.infer<typeof schemaFiltresPointage>;
