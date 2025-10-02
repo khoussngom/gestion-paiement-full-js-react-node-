@@ -62,7 +62,7 @@ export default function Payments() {
         });
       }
 
-      // Charger les paiements
+      // Charger la liste des paiements existants
       const paymentsResponse = await paymentService.getAll();
       if (paymentsResponse?.succes && paymentsResponse.donnees) {
         setPayments(paymentsResponse.donnees);

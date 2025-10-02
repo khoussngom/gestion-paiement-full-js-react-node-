@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TypeContrat, StatutCyclePaie, ModePaiement } from '@/enums';
+import { TypeContrat, StatutCyclePaie, ModePaiement, TypeCyclePaie } from '@/enums';
 import { RoleUtilisateur } from '@prisma/client';
 import { MESSAGES_VALIDATION } from '@/enums/messages';
 
@@ -86,6 +86,7 @@ export const schemaFiltresEmploye = z.object({
 // Schéma de base pour le cycle de paie
 const schemaCyclePaieBase = z.object({
   nom: z.string().min(1, MESSAGES_VALIDATION.NOM_REQUIS),
+  typeCycle: z.nativeEnum(TypeCyclePaie),
   dateDebut: z.coerce.date(),
   dateFin: z.coerce.date(),
   entrepriseId: z.string().min(1, MESSAGES_VALIDATION.CHAMP_REQUIS)

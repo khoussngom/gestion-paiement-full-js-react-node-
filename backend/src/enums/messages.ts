@@ -23,10 +23,10 @@ export const MESSAGES_SUCCES = {
   UTILISATEUR_DESACTIVE: 'Utilisateur désactivé avec succès',
   
   // Cycles de paie
-  CYCLE_PAIE_CREE: 'Cycle de paie créé avec succès',
-  CYCLE_PAIE_MODIFIE: 'Cycle de paie modifié avec succès',
-  CYCLE_PAIE_APPROUVE: 'Cycle de paie approuvé avec succès',
-  CYCLE_PAIE_CLOTURE: 'Cycle de paie clôturé avec succès',
+  CYCLE_CREE: 'Cycle de paie créé avec succès',
+  CYCLE_MODIFIE: 'Cycle de paie modifié avec succès',
+  CYCLE_APPROUVE: 'Cycle de paie approuvé avec succès',
+  CYCLE_CLOTURE: 'Cycle de paie clôturé avec succès',
   
   // Bulletins de paie
   BULLETINS_GENERES: 'Bulletins de paie générés avec succès',

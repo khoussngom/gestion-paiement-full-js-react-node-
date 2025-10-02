@@ -10,6 +10,11 @@ export enum RoleUtilisateur {
   CAISSIER = 'CAISSIER'
 }
 
+export enum TypeCyclePaie {
+  MENSUEL = 'MENSUEL',
+  HEBDOMADAIRE = 'HEBDOMADAIRE'
+}
+
 export enum StatutCyclePaie {
   BROUILLON = 'BROUILLON',
   APPROUVE = 'APPROUVE',

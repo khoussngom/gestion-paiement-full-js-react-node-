@@ -1,9 +1,10 @@
-import { StatutCyclePaie } from '@/enums';
+import { StatutCyclePaie, TypeCyclePaie } from '@/enums';
 import { ICyclePaie } from '@/interfaces/entities';
 
 export class CyclePaie implements ICyclePaie {
   id: string;
   nom: string;
+  typeCycle: TypeCyclePaie;
   dateDebut: Date;
   dateFin: Date;
   statut: StatutCyclePaie;
@@ -14,6 +15,7 @@ export class CyclePaie implements ICyclePaie {
   constructor(donnees: any) {
     this.id = donnees.id || '';
     this.nom = donnees.nom || '';
+    this.typeCycle = donnees.typeCycle || TypeCyclePaie.MENSUEL;
     this.dateDebut = donnees.dateDebut || new Date();
     this.dateFin = donnees.dateFin || new Date();
     this.statut = donnees.statut || StatutCyclePaie.BROUILLON;

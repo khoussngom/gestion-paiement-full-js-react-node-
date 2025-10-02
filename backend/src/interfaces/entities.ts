@@ -1,4 +1,4 @@
-import { TypeContrat, RoleUtilisateur, StatutCyclePaie, StatutBulletinPaie, ModePaiement } from '@/enums';
+import { TypeContrat, RoleUtilisateur, StatutCyclePaie, StatutBulletinPaie, ModePaiement, TypeCyclePaie } from '@/enums';
 
 export interface IEntreprise {
   id: string;
@@ -50,6 +50,7 @@ export interface IEmploye {
 export interface ICyclePaie {
   id: string;
   nom: string;
+  typeCycle: TypeCyclePaie;
   dateDebut: Date;
   dateFin: Date;
   statut: StatutCyclePaie;

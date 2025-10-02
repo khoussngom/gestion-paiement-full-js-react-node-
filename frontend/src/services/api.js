@@ -69,6 +69,7 @@ export const paymentService = {
   getAll: async () => (await api.get('/paiements')).data,
   getStatistics: async () => (await api.get('/paiements/statistics')).data,
   create: async (data) => (await api.post('/paiements', data)).data,
+  getUnpaidEmployeesFromActiveCycles: async () => (await api.get('/cycles-paie/employes-non-payes')).data,
   exportCSV: async () => {
     const response = await api.get('/paiements/export/csv', { responseType: 'blob' });
     const blob = new Blob([response.data], { type: 'text/csv' });
