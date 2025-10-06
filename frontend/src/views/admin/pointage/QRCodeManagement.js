@@ -37,11 +37,9 @@ import {
 } from '@chakra-ui/react';
 import { 
   MdQrCode, 
-  MdRefresh, 
   MdDownload, 
   MdAdd,
-  MdVisibility,
-  MdDelete
+  MdVisibility
 } from 'react-icons/md';
 import { pointageService } from 'services/pointageService';
 import { employeeService } from 'services/employeeService';
@@ -51,7 +49,7 @@ export default function QRCodeManagement() {
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedQRCode, setSelectedQRCode] = useState(null);
-  const [selectedEmploye, setSelectedEmploye] = useState(null);
+
   const [generatingAll, setGeneratingAll] = useState(false);
   
   const { isOpen: isQRModalOpen, onOpen: onQRModalOpen, onClose: onQRModalClose } = useDisclosure();
@@ -65,11 +63,7 @@ export default function QRCodeManagement() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [employesResult, qrCodesResult] = await Promise.all([
-        employeeService.getAll(),
-        // On récupère les QR codes via les employés pour simplifier
-        employeeService.getAll()
-      ]);
+      const employesResult = await employeeService.getAll();
 
       if (employesResult.succes) {
         setEmployes(employesResult.donnees);
@@ -150,33 +144,7 @@ export default function QRCodeManagement() {
     }
   };
 
-  // Renouveler un QR code
-  const renouverrQRCode = async (employeId) => {
-    try {
-      const result = await pointageService.renouverrQRCode(employeId);
-      
-      if (result.succes) {
-        toast({
-          title: 'QR Code renouvelé',
-          description: 'QR Code renouvelé avec succès',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-        await loadData();
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors du renouvellement',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
+
 
   // Générer tous les QR codes
   const genererTousQRCodes = async () => {
@@ -281,7 +249,6 @@ export default function QRCodeManagement() {
           <Heading size="lg">Gestion des QR Codes</Heading>
           <HStack>
             <Button
-              leftIcon={<MdRefresh />}
               onClick={loadData}
               variant="outline"
               size="sm"
@@ -435,14 +402,6 @@ export default function QRCodeManagement() {
                                 onClick={() => voirQRCode(item.employe)}
                               >
                                 Voir
-                              </Button>
-                              <Button
-                                size="xs"
-                                colorScheme="orange"
-                                leftIcon={<MdRefresh />}
-                                onClick={() => renouverrQRCode(item.employe.id)}
-                              >
-                                Renouveler
                               </Button>
                             </>
                           )}

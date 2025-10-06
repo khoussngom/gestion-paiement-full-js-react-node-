@@ -26,6 +26,12 @@ export function SidebarLinks(props) {
     // Masquer les routes marquées comme hideInSidebar
     if (route.hideInSidebar) return false;
     
+    // Logique spéciale pour les vigiles : ne montrer que Scanner, Profil et Déconnexion
+    if (user?.role === 'VIGILE') {
+      const allowedPaths = ['/scanner', '/profile', '/logout'];
+      return allowedPaths.includes(route.path);
+    }
+    
     // Si c'est une route super admin only, vérifier le rôle
     if (route.superAdminOnly && user?.role !== 'SUPER_ADMIN') {
       return false;
@@ -43,6 +49,11 @@ export function SidebarLinks(props) {
     
     return true;
   });
+
+  // Debug du rôle utilisateur (à retirer en production)
+  console.log('Rôle utilisateur actuel:', user?.role);
+  console.log('Routes disponibles:', routes.length);
+  console.log('Routes filtrées:', filteredRoutes.length);
 
   // Fonction pour gérer la déconnexion
   const handleLogout = async () => {

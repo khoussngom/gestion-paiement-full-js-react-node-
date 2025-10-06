@@ -175,33 +175,6 @@ export default function EmployeeDetailModal({ isOpen, onClose, employee }) {
     }
   };
 
-  const renewQRCode = async () => {
-    try {
-      setLoadingQR(true);
-      const result = await pointageService.renouverrQRCode(employee.id);
-      if (result.succes) {
-        toast({
-          title: 'QR Code renouvelé',
-          description: 'QR Code renouvelé avec succès',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-        await loadQRCode();
-      }
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors du renouvellement du QR Code',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoadingQR(false);
-    }
-  };
-
   const downloadQRCode = () => {
     if (!qrCodeData?.qrCodeImage) return;
     
@@ -595,21 +568,6 @@ export default function EmployeeDetailModal({ isOpen, onClose, employee }) {
                                     </Text>
                                   </Box>
                                 </SimpleGrid>
-                                
-                                <Box pt={4}>
-                                  <Button
-                                    leftIcon={<MdRefresh />}
-                                    colorScheme="orange"
-                                    onClick={renewQRCode}
-                                    w="100%"
-                                    size="lg"
-                                  >
-                                    Renouveler le QR Code
-                                  </Button>
-                                  <Text fontSize="xs" color="gray.500" textAlign="center" mt={2}>
-                                    ⚠️ Cette action invalidera l'ancien QR Code
-                                  </Text>
-                                </Box>
                               </VStack>
                             </CardBody>
                           </Card>

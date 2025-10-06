@@ -22,16 +22,29 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
-  useDisclosure
+  useDisclosure,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  IconButton,
+  Tooltip
 } from '@chakra-ui/react';
 import { 
   MdUpload, 
   MdDelete, 
   MdSave, 
   MdBusiness, 
-  MdImage
+  MdImage,
+  MdAdd,
+  MdPerson,
+  MdSecurity
 } from 'react-icons/md';
 import ColorPicker from 'components/colorPicker/ColorPicker';
+import CreateVigileModal from 'components/modals/CreateVigileModal';
 
 const CompanySettings = () => {
   const [companyData, setCompanyData] = useState(null);
@@ -40,10 +53,17 @@ const CompanySettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [vigiles, setVigiles] = useState([]);
+  const [loadingVigiles, setLoadingVigiles] = useState(false);
   
   const fileInputRef = useRef();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isCreateVigileOpen, 
+    onOpen: onOpenCreateVigile, 
+    onClose: onCloseCreateVigile 
+  } = useDisclosure();
   const cancelRef = useRef();
 
   const [formData, setFormData] = useState({
@@ -96,6 +116,65 @@ const CompanySettings = () => {
       setLoading(false);
     }
   }, [toast]);
+
+  const loadVigiles = useCallback(async () => {
+    try {
+      setLoadingVigiles(true);
+      const response = await fetch('http://localhost:3001/api/auth/vigiles', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.succes) {
+          setVigiles(data.donnees || []);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des vigiles:', error);
+    } finally {
+      setLoadingVigiles(false);
+    }
+  }, []);
+
+  const handleVigileCreated = (newVigile) => {
+    setVigiles(prev => [...prev, newVigile]);
+  };
+
+  const handleDeleteVigile = async (vigileId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce vigile ?')) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/auth/vigiles/${vigileId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+        
+        if (response.ok) {
+          setVigiles(prev => prev.filter(v => v.id !== vigileId));
+          toast({
+            title: 'Vigile supprimé',
+            description: 'Le vigile a été supprimé avec succès',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } catch (error) {
+        console.error('Erreur suppression vigile:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Erreur lors de la suppression du vigile',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     loadCompanyData();

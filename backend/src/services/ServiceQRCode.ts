@@ -240,59 +240,7 @@ export class ServiceQRCode {
     return await this.qrCodeRepository.nettoyerExpires();
   }
 
-  /**
-   * Génère des QR Codes pour tous les employés actifs d'une entreprise
-   */
-  async genererQRCodesPourTousEmployes(entrepriseId: string): Promise<{
-    succes: number;
-    echecs: number;
-    details: Array<{ employeId: string; nom: string; statut: string; erreur?: string }>;
-  }> {
-    try {
-      // Récupérer tous les employés actifs
-      const employes = await this.prisma.employe.findMany({
-        where: {
-          entrepriseId: entrepriseId,
-          actif: true
-        },
-        select: {
-          id: true,
-          nomComplet: true
-        }
-      });
 
-      const resultats = {
-        succes: 0,
-        echecs: 0,
-        details: [] as Array<{ employeId: string; nom: string; statut: string; erreur?: string }>
-      };
-
-      for (const employe of employes) {
-        try {
-          await this.genererQRCodeEmploye(employe.id);
-          resultats.succes++;
-          resultats.details.push({
-            employeId: employe.id,
-            nom: employe.nomComplet,
-            statut: 'Réussi'
-          });
-        } catch (error: any) {
-          resultats.echecs++;
-          resultats.details.push({
-            employeId: employe.id,
-            nom: employe.nomComplet,
-            statut: 'Échec',
-            erreur: error.message
-          });
-        }
-      }
-
-      return resultats;
-
-    } catch (error: any) {
-      throw new Error(`Erreur lors de la génération massive: ${error.message}`);
-    }
-  }
 
   /**
    * Obtient l'historique d'utilisation d'un QR Code
@@ -347,6 +295,67 @@ export class ServiceQRCode {
         secure: false,
         risques: [`Erreur de validation: ${error.message}`]
       };
+    }
+  }
+
+  /**
+   * Génère des QR Codes pour tous les employés d'une entreprise
+   */
+  async genererQRCodesPourTousEmployes(entrepriseId: string): Promise<{
+    succes: number;
+    echecs: number;
+    details: Array<{employeId: string, nom: string, succes: boolean, erreur?: string}>;
+  }> {
+    console.log(`🏭 Génération QR Codes pour tous les employés de l'entreprise: ${entrepriseId}`);
+    
+    try {
+      // Récupérer tous les employés actifs de l'entreprise
+      const employes = await this.prisma.employe.findMany({
+        where: { 
+          entrepriseId: entrepriseId,
+          actif: true 
+        }
+      });
+      
+      console.log(`👥 ${employes.length} employés trouvés pour l'entreprise ${entrepriseId}`);
+      
+      let succes = 0;
+      let echecs = 0;
+      const details: Array<{employeId: string, nom: string, succes: boolean, erreur?: string}> = [];
+
+      for (const employe of employes) {
+        try {
+          console.log(`🔄 Génération QR Code pour ${employe.nomComplet} (${employe.id})`);
+          
+          await this.genererQRCodeEmploye(employe.id);
+          
+          succes++;
+          details.push({
+            employeId: employe.id,
+            nom: employe.nomComplet,
+            succes: true
+          });
+          
+          console.log(`✅ QR Code généré avec succès pour ${employe.nomComplet}`);
+        } catch (error: any) {
+          console.error(`❌ Erreur génération QR Code pour ${employe.nomComplet}:`, error.message);
+          
+          echecs++;
+          details.push({
+            employeId: employe.id,
+            nom: employe.nomComplet,
+            succes: false,
+            erreur: error.message
+          });
+        }
+      }
+
+      console.log(`🎯 Génération terminée: ${succes} succès, ${echecs} échecs`);
+      
+      return { succes, echecs, details };
+    } catch (error: any) {
+      console.error('❌ Erreur générale lors de la génération des QR Codes:', error);
+      throw new Error(`Erreur lors de la génération des QR Codes: ${error.message}`);
     }
   }
 }

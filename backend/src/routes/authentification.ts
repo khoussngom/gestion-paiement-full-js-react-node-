@@ -120,6 +120,184 @@ routeurAuthentification.post('/inscription', async (req, res) => {
   }
 });
 
+// POST /auth/creer-vigile - Créer un utilisateur vigile (Admin uniquement)
+routeurAuthentification.post('/creer-vigile', async (req, res) => {
+  try {
+    // Pour l'instant, on permet la création sans authentification pour les tests
+    // TODO: Ajouter middleware d'authentification admin
+    
+    const { nom, prenom, email, motDePasse } = req.body;
+    
+    // Validation de base
+    if (!nom || !prenom || !email || !motDePasse) {
+      return res.status(400).json({
+        succes: false,
+        message: 'Nom, prénom, email et mot de passe sont requis'
+      });
+    }
+
+    // Vérifier si l'email existe déjà
+    const emailExiste = await utilisateurRepo.verifierExistenceEmail(email);
+    if (emailExiste) {
+      return res.status(409).json({
+        succes: false,
+        message: 'Cet email est déjà utilisé'
+      });
+    }
+
+    // Hacher le mot de passe
+    const motDePasseHache = await bcrypt.hash(motDePasse, 10);
+
+    // Créer l'utilisateur vigile
+    const vigileData = {
+      nom,
+      prenom,
+      email: email.toLowerCase(),
+      motDePasse: motDePasseHache,
+      role: 'VIGILE' as any,
+      entrepriseId: 'cmg9jyzoi0000a5rrsh87fbmg', // ID entreprise par défaut pour les tests
+      actif: true
+    };
+
+    const nouveauVigile = await utilisateurRepo.creer(vigileData);
+
+    res.status(201).json({
+      succes: true,
+      message: 'Vigile créé avec succès',
+      donnees: {
+        id: nouveauVigile.id,
+        nom: nouveauVigile.nom,
+        prenom: nouveauVigile.prenom,
+        email: nouveauVigile.email,
+        role: nouveauVigile.role
+      }
+    });
+  } catch (error: any) {
+    console.error('Erreur création vigile:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur lors de la création du vigile',
+      erreur: error.message
+    });
+  }
+});
+
+// GET /auth/vigiles - Obtenir la liste des vigiles (Admin uniquement)
+routeurAuthentification.get('/vigiles', async (req, res) => {
+  try {
+    // TODO: Ajouter middleware d'authentification admin
+    
+    // Récupérer tous les utilisateurs avec le rôle VIGILE
+    const vigiles = await utilisateurRepo.getByRole('VIGILE');
+    
+    res.status(200).json({
+      succes: true,
+      message: 'Liste des vigiles récupérée avec succès',
+      donnees: vigiles.map(vigile => ({
+        id: vigile.id,
+        nom: vigile.nom,
+        prenom: vigile.prenom,
+        email: vigile.email,
+        actif: vigile.actif,
+        dateCreation: vigile.dateCreation
+      }))
+    });
+  } catch (error: any) {
+    console.error('Erreur récupération vigiles:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur lors de la récupération des vigiles',
+      erreur: error.message
+    });
+  }
+});
+
+// PATCH /auth/vigiles/:id/toggle-status - Basculer le statut d'un vigile (Admin uniquement)
+routeurAuthentification.patch('/vigiles/:id/toggle-status', async (req, res) => {
+  try {
+    // TODO: Ajouter middleware d'authentification admin
+    
+    const { id } = req.params;
+    
+    // Récupérer le vigile
+    const vigile = await utilisateurRepo.getById(id);
+    if (!vigile) {
+      return res.status(404).json({
+        succes: false,
+        message: 'Vigile non trouvé'
+      });
+    }
+    
+    // Vérifier que c'est bien un vigile
+    if (vigile.role !== 'VIGILE') {
+      return res.status(400).json({
+        succes: false,
+        message: 'Cet utilisateur n\'est pas un vigile'
+      });
+    }
+    
+    // Basculer le statut
+    const vigileModifie = await utilisateurRepo.modifierStatut(id, !vigile.actif);
+    
+    res.status(200).json({
+      succes: true,
+      message: `Vigile ${vigileModifie.actif ? 'activé' : 'désactivé'} avec succès`,
+      donnees: {
+        id: vigileModifie.id,
+        actif: vigileModifie.actif
+      }
+    });
+  } catch (error: any) {
+    console.error('Erreur modification statut vigile:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur lors de la modification du statut',
+      erreur: error.message
+    });
+  }
+});
+
+// DELETE /auth/vigiles/:id - Supprimer un vigile (Admin uniquement)
+routeurAuthentification.delete('/vigiles/:id', async (req, res) => {
+  try {
+    // TODO: Ajouter middleware d'authentification admin
+    
+    const { id } = req.params;
+    
+    // Récupérer le vigile
+    const vigile = await utilisateurRepo.getById(id);
+    if (!vigile) {
+      return res.status(404).json({
+        succes: false,
+        message: 'Vigile non trouvé'
+      });
+    }
+    
+    // Vérifier que c'est bien un vigile
+    if (vigile.role !== 'VIGILE') {
+      return res.status(400).json({
+        succes: false,
+        message: 'Cet utilisateur n\'est pas un vigile'
+      });
+    }
+    
+    // Supprimer le vigile
+    await utilisateurRepo.supprimer(id);
+    
+    res.status(200).json({
+      succes: true,
+      message: 'Vigile supprimé avec succès'
+    });
+  } catch (error: any) {
+    console.error('Erreur suppression vigile:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur lors de la suppression du vigile',
+      erreur: error.message
+    });
+  }
+});
+
 // POST /auth/deconnexion - Déconnexion utilisateur
 routeurAuthentification.post('/deconnexion', (req, res) => {
   // Côté client, supprimer le token du localStorage/sessionStorage

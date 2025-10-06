@@ -25,9 +25,10 @@ import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
 import CompanySettings from 'views/admin/settings/CompanySettings';
 
 // Pointage Imports
-import VigileScanner from 'views/vigile/Scanner';
+import VigileScanner from 'views/vigile/Scanner_Simple';
 import PointageReports from 'views/admin/pointage/Reports';
 import QRCodeManagement from 'views/admin/pointage/QRCodeManagement';
+import VigileManagement from 'views/admin/vigile/VigileManagement';
 
 const routes = [
   {
@@ -87,6 +88,14 @@ const routes = [
     path: '/qr-management',
     icon: <Icon as={MdQrCode} width="20px" height="20px" color="inherit" />,
     component: <QRCodeManagement />,
+    adminOnly: true, // Accessible uniquement aux admins
+  },
+  {
+    name: 'Gestion Vigiles',
+    layout: '/admin',
+    path: '/vigile-management',
+    icon: <Icon as={MdSettings} width="20px" height="20px" color="inherit" />,
+    component: <VigileManagement />,
     adminOnly: true, // Accessible uniquement aux admins
   },
   {

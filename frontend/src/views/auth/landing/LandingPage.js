@@ -161,7 +161,7 @@ const LandingPage = () => {
       </Box>
 
       {/* Hero Section */}
-      <Box bgGradient={bgGradient} color="white" py={20}>
+      <Box bg={"blue"} color="white" py={20}>
         <Container maxW="7xl">
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={10} alignItems="center">
             <VStack align="start" spacing={8}>
@@ -233,7 +233,14 @@ const LandingPage = () => {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Text>Aperçu du Dashboard</Text>
+                  <Image
+                  src="./image.png"
+                  alt="Démo de la plateforme"
+                  borderRadius="md"
+                  boxSize="120px"
+                  objectFit="cover"
+                  ml={4}
+                />
                   </Box>
                 }
               />

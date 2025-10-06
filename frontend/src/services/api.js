@@ -58,6 +58,10 @@ export const authService = {
   },
   getCurrentUser: () => JSON.parse(localStorage.getItem('user') || 'null'),
   isAuthenticated: () => !!localStorage.getItem('authToken'),
+  createVigile: async (vigileData) => {
+    const response = await api.post('/auth/creer-vigile', vigileData);
+    return response.data;
+  },
 };
 
 export const dashboardService = {

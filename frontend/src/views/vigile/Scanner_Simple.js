@@ -20,9 +20,8 @@ import {
   useColorModeValue,
   Container
 } from '@chakra-ui/react';
-import { MdQrCodeScanner, MdCamera, MdRefresh, MdCheckCircle } from 'react-icons/md';
+import { MdQrCodeScanner, MdCamera, MdStop } from 'react-icons/md';
 import { pointageService } from 'services/pointageService';
-import jsQR from 'jsqr';
 
 export default function VigileScanner() {
   const [isScanning, setIsScanning] = useState(false);
@@ -40,7 +39,7 @@ export default function VigileScanner() {
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   
-  // Demander l'accès à la caméra
+  // Démarrer la caméra
   const startCamera = async () => {
     try {
       setLoading(true);
@@ -51,20 +50,25 @@ export default function VigileScanner() {
         stream.getTracks().forEach(track => track.stop());
       }
 
-      const newStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment', // Caméra arrière si disponible
+      const constraints = {
+        video: {
+          facingMode: { ideal: 'environment' }, // Caméra arrière si disponible
           width: { ideal: 1280 },
           height: { ideal: 720 }
-        } 
-      });
+        }
+      };
+
+      console.log('Demande d\'accès caméra...');
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
       
+      console.log('Caméra obtenue:', newStream);
       setStream(newStream);
       setCameraPermission('granted');
       
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        console.log('Vidéo en cours de lecture');
       }
       
       setIsScanning(true);
@@ -73,12 +77,12 @@ export default function VigileScanner() {
     } catch (err) {
       console.error('Erreur caméra:', err);
       setCameraPermission('denied');
-      setError('Impossible d\'accéder à la caméra. Vérifiez les permissions.');
+      setError(`Impossible d'accéder à la caméra: ${err.message}`);
       toast({
         title: 'Erreur caméra',
-        description: 'Impossible d\'accéder à la caméra',
+        description: `Impossible d'accéder à la caméra: ${err.message}`,
         status: 'error',
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
     } finally {
@@ -88,26 +92,39 @@ export default function VigileScanner() {
 
   // Arrêter la caméra
   const stopCamera = () => {
+    console.log('Arrêt de la caméra...');
     setIsScanning(false);
+    
     if (scanIntervalRef.current) {
       clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
     }
     
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log('Track arrêté:', track);
+      });
       setStream(null);
     }
     
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+
+    setCameraPermission(null);
   };
 
   // Scanner en continu
   const startScanning = () => {
-    scanIntervalRef.current = setInterval(async () => {
-      await scanQRCode();
-    }, 500); // Scanner toutes les 500ms
+    console.log('Démarrage du scan automatique...');
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
+    
+    scanIntervalRef.current = setInterval(() => {
+      scanQRCode();
+    }, 1000); // Scanner toutes les 1 seconde pour éviter la surcharge
   };
 
   // Fonction de scan QR Code
@@ -120,25 +137,33 @@ export default function VigileScanner() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
-    // Ajuster la taille du canvas à la vidéo
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Dessiner la frame actuelle
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
     try {
+      // Ajuster la taille du canvas à la vidéo
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      if (canvas.width === 0 || canvas.height === 0) {
+        return; // Vidéo pas encore prête
+      }
+      
+      // Dessiner la frame actuelle
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
       // Obtenir les données d'image pour jsQR
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+      
+      // Utiliser jsQR pour détecter le QR code
+      const qrCode = window.jsQR && window.jsQR(imageData.data, imageData.width, imageData.height);
       
       if (qrCode) {
-        // QR Code détecté - arrêter le scan temporairement pour éviter les duplicatas
+        console.log('QR Code détecté:', qrCode.data);
+        
+        // Arrêter le scan temporairement pour éviter les duplicatas
         if (scanIntervalRef.current) {
           clearInterval(scanIntervalRef.current);
+          scanIntervalRef.current = null;
         }
         
-        console.log('QR Code détecté:', qrCode.data);
         await processScan(qrCode.data);
         
         // Reprendre le scan après 3 secondes
@@ -150,8 +175,8 @@ export default function VigileScanner() {
       }
       
     } catch (error) {
-      // Ignorer les erreurs de scan - normal si pas de QR code
-      console.log('Erreur scan QR:', error);
+      // Ignorer les erreurs de scan - normal si pas de QR code visible
+      console.log('Pas de QR code détecté dans cette frame');
     }
   };
 
@@ -159,6 +184,7 @@ export default function VigileScanner() {
   const processScan = async (qrData) => {
     if (loading) return;
     
+    console.log('Traitement du QR code:', qrData);
     setLoading(true);
     setError(null);
     
@@ -207,8 +233,9 @@ export default function VigileScanner() {
     }
   };
 
-  // Simuler un scan pour les tests (à retirer en production)
+  // Simuler un scan pour les tests
   const simulateScan = () => {
+    console.log('Test de scan simulé...');
     const testQRData = JSON.stringify({
       code: 'QR-TEST-123',
       secret: 'SECRET123',
@@ -221,6 +248,7 @@ export default function VigileScanner() {
   // Nettoyage au démontage
   useEffect(() => {
     return () => {
+      console.log('Nettoyage du composant Scanner...');
       if (scanIntervalRef.current) {
         clearInterval(scanIntervalRef.current);
       }
@@ -231,22 +259,9 @@ export default function VigileScanner() {
     };
   }, [stream]);
 
-  // Effet pour gérer le stream vidéo
-  useEffect(() => {
-    if (stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
-
   return (
-    <Box 
-      pt={{ base: "130px", md: "80px", xl: "80px" }} 
-      px={{ base: "10px", md: "20px" }}
-      pb={{ base: "20px", md: "40px" }}
-      minH="100vh"
-      bg={useColorModeValue('gray.50', 'gray.900')}
-    >
-      <VStack spacing={{ base: "15px", md: "20px" }} maxW="600px" mx="auto">
+    <Container maxW="600px" py={6}>
+      <VStack spacing={6}>
         
         {/* En-tête */}
         <Card w="100%" bg={bgColor} borderColor={borderColor}>
@@ -263,6 +278,14 @@ export default function VigileScanner() {
           </CardHeader>
         </Card>
 
+        {/* Zone d'erreur */}
+        {error && (
+          <Alert status="error" borderRadius="lg">
+            <AlertIcon />
+            <Text fontSize="sm">{error}</Text>
+          </Alert>
+        )}
+
         {/* Zone de scan */}
         <Card w="100%" bg={bgColor} borderColor={borderColor}>
           <CardBody>
@@ -272,14 +295,14 @@ export default function VigileScanner() {
               <Box 
                 position="relative" 
                 w="100%" 
-                maxW={{ base: "95vw", md: "400px" }}
+                maxW={{ base: "95%", md: "400px" }}
                 bg="gray.100"
                 borderRadius="lg"
                 overflow="hidden"
                 aspectRatio="4/3"
                 minH={{ base: "250px", md: "300px" }}
               >
-                {isScanning ? (
+                {isScanning && cameraPermission === 'granted' ? (
                   <>
                     <video
                       ref={videoRef}
@@ -290,6 +313,7 @@ export default function VigileScanner() {
                       }}
                       playsInline
                       muted
+                      autoPlay
                     />
                     
                     {/* Overlay de scan */}
@@ -304,18 +328,6 @@ export default function VigileScanner() {
                       borderColor="blue.500"
                       borderRadius="lg"
                       bg="transparent"
-                      _before={{
-                        content: '""',
-                        position: 'absolute',
-                        top: '-3px',
-                        left: '-3px',
-                        right: '-3px',
-                        bottom: '-3px',
-                        border: '3px solid',
-                        borderColor: 'transparent blue.500 transparent transparent',
-                        borderRadius: 'lg',
-                        animation: 'spin 2s linear infinite'
-                      }}
                     />
                     
                     {/* Instructions */}
@@ -333,6 +345,26 @@ export default function VigileScanner() {
                     >
                       Positionnez le QR Code dans le cadre
                     </Box>
+
+                    {/* Indicateur de chargement */}
+                    {loading && (
+                      <Flex
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="blackAlpha.600"
+                        align="center"
+                        justify="center"
+                        borderRadius="lg"
+                      >
+                        <VStack>
+                          <Spinner size="lg" color="white" />
+                          <Text color="white">Traitement...</Text>
+                        </VStack>
+                      </Flex>
+                    )}
                   </>
                 ) : (
                   <Flex
@@ -343,8 +375,9 @@ export default function VigileScanner() {
                     color="gray.500"
                   >
                     <MdCamera size="48px" />
-                    <Text mt={2} fontSize="sm">
-                      {cameraPermission === 'denied' 
+                    <Text mt={2} fontSize="sm" textAlign="center">
+                      {loading ? 'Démarrage...' :
+                       cameraPermission === 'denied' 
                         ? 'Accès caméra refusé' 
                         : 'Caméra désactivée'
                       }
@@ -371,29 +404,25 @@ export default function VigileScanner() {
                       loadingText="Démarrage..."
                       size={{ base: "lg", md: "md" }}
                       w={{ base: "full", md: "auto" }}
-                      fontSize={{ base: "lg", md: "md" }}
-                      py={{ base: "20px", md: "auto" }}
                     >
                       Démarrer Scanner
                     </Button>
                   ) : (
                     <Button
-                      variant="outline"
-                      leftIcon={<MdRefresh />}
+                      colorScheme="red"
+                      leftIcon={<MdStop />}
                       onClick={stopCamera}
                       size={{ base: "lg", md: "md" }}
                       w={{ base: "full", md: "auto" }}
-                      fontSize={{ base: "lg", md: "md" }}
-                      py={{ base: "20px", md: "auto" }}
                     >
                       Arrêter Scanner
                     </Button>
                   )}
                   
-                  {/* Bouton de test (à retirer en production) */}
+                  {/* Bouton de test (développement seulement) */}
                   {process.env.NODE_ENV === 'development' && (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       colorScheme="orange"
                       onClick={simulateScan}
                       size={{ base: "md", md: "sm" }}
@@ -405,25 +434,17 @@ export default function VigileScanner() {
                 </HStack>
               </VStack>
 
-              {/* État de chargement */}
-              {loading && (
-                <HStack>
-                  <Spinner size="sm" />
-                  <Text fontSize="sm">Traitement en cours...</Text>
-                </HStack>
-              )}
-
             </VStack>
           </CardBody>
         </Card>
 
         {/* Résultat du scan */}
         {scanResult && (
-          <Card w="100%" bg="green.50" borderColor="green.200">
+          <Card w="100%" bg="green.50" borderColor="green.200" borderWidth={2}>
             <CardHeader pb={2}>
               <HStack justify="space-between">
                 <Text fontWeight="bold" color="green.700">
-                  Pointage Enregistré
+                  ✅ Pointage Enregistré
                 </Text>
                 <Badge colorScheme="green">
                   {scanResult.timestamp?.toLocaleTimeString('fr-FR')}
@@ -482,21 +503,13 @@ export default function VigileScanner() {
           </Card>
         )}
 
-        {/* Erreur */}
-        {error && (
-          <Alert status="error" borderRadius="lg">
-            <AlertIcon />
-            <Text fontSize="sm">{error}</Text>
-          </Alert>
-        )}
-
         {/* Instructions */}
-        <Card w="100%" bg={bgColor} borderColor={borderColor}>
+        <Card w="100%" bg="blue.50" borderColor="blue.200">
           <CardHeader>
-            <Text fontWeight="bold">Instructions d'utilisation</Text>
+            <Text fontWeight="bold" color="blue.700">Instructions d'utilisation</Text>
           </CardHeader>
           <CardBody pt={0}>
-            <VStack align="start" spacing={2} fontSize="sm" color="gray.600">
+            <VStack align="start" spacing={2} fontSize="sm" color="blue.600">
               <Text>• Cliquez sur "Démarrer Scanner" pour activer la caméra</Text>
               <Text>• Positionnez le QR Code de l'employé dans le cadre</Text>
               <Text>• Le pointage sera automatiquement enregistré</Text>
@@ -506,7 +519,22 @@ export default function VigileScanner() {
           </CardBody>
         </Card>
 
+        {/* Informations de debug */}
+        {process.env.NODE_ENV === 'development' && (
+          <Card w="100%" bg="gray.50" borderColor="gray.200">
+            <CardBody>
+              <Text fontSize="xs" color="gray.600">
+                Debug Info:
+                <br />• URL correcte: /admin/scanner
+                <br />• Caméra: {cameraPermission || 'non testée'}
+                <br />• Scanner actif: {isScanning ? 'oui' : 'non'}
+                <br />• Stream: {stream ? 'actif' : 'inactif'}
+              </Text>
+            </CardBody>
+          </Card>
+        )}
+
       </VStack>
-    </Box>
+    </Container>
   );
 }

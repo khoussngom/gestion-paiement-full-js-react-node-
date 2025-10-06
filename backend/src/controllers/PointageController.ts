@@ -353,28 +353,37 @@ export class PointageController {
       const { employeId } = req.params;
       const entrepriseId = req.utilisateur?.entrepriseId;
 
+      console.log(`🔍 Demande QR Code pour employé: ${employeId}, entreprise: ${entrepriseId}`);
+
       if (!entrepriseId) {
+        console.log('❌ Entreprise non autorisée');
         return res.status(403).json({
           succes: false,
           message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
         });
       }
 
+      console.log('📱 Appel du service QR Code...');
       const resultat = await this.serviceQRCode.obtenirQRCodeEmploye(employeId);
 
+      console.log('🔧 Résultat du service:', { existe: resultat.existe, hasImage: !!resultat.qrCodeImage });
+
       if (!resultat.existe) {
+        console.log('❌ QR Code non trouvé pour l\'employé:', employeId);
         return res.status(404).json({
           succes: false,
           message: 'QR Code non trouvé pour cet employé'
         });
       }
 
+      console.log('✅ QR Code trouvé, envoi de la réponse');
       res.status(200).json({
         succes: true,
         donnees: resultat
       });
 
     } catch (error: any) {
+      console.error('❌ Erreur dans obtenirQRCodeEmploye:', error);
       res.status(500).json({
         succes: false,
         message: MESSAGES_ERREUR.ERREUR_SERVEUR,

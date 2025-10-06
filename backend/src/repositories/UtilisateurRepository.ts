@@ -154,4 +154,25 @@ export class UtilisateurRepository extends BasePrismaRepository {
     });
     return new Utilisateur(utilisateur);
   }
+
+  async getByRole(role: string): Promise<Utilisateur[]> {
+    const utilisateurs = await this.prisma.utilisateur.findMany({
+      where: { role: role as any },
+      include: {
+        entreprise: true
+      },
+      orderBy: {
+        dateCreation: 'desc'
+      }
+    });
+    return utilisateurs.map(u => new Utilisateur(u));
+  }
+
+  async modifierStatut(id: string, actif: boolean): Promise<Utilisateur> {
+    return this.toggleActive(id, actif);
+  }
+
+  async supprimer(id: string): Promise<void> {
+    return this.delete(id);
+  }
 }

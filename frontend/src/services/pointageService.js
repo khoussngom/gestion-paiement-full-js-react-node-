@@ -13,11 +13,7 @@ export const pointageService = {
     return (await api.get(`/pointages/qr-code/${employeId}`)).data;
   },
 
-  renouverrQRCode: async (employeId) => {
-    return (await api.post('/pointages/qr-code/renouveler', { 
-      employeId 
-    })).data;
-  },
+
 
   genererQRCodesPourTous: async () => {
     return (await api.post('/pointages/qr-code/generer-tous')).data;
