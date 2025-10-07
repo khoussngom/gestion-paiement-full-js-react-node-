@@ -26,6 +26,7 @@ import { FaEthereum } from 'react-icons/fa';
 import { useAuth } from 'contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import defaultRoutes from 'routes';
+import NotificationBell from 'components/notifications/NotificationBell';
 
 export default function HeaderLinks(props) {
   const { secondary, routes = defaultRoutes } = props;
@@ -34,7 +35,6 @@ export default function HeaderLinks(props) {
   const navbarIcon = useColorModeValue('gray.400', 'white');
   let menuBg = useColorModeValue('white', 'navy.800');
   const textColor = useColorModeValue('secondaryGray.900', 'white');
-  const textColorBrand = useColorModeValue('brand.700', 'brand.400');
   const ethColor = useColorModeValue('gray.700', 'white');
   const borderColor = useColorModeValue('#E6ECFA', 'rgba(135, 140, 189, 0.3)');
   const ethBg = useColorModeValue('secondaryGray.300', 'navy.900');
@@ -123,6 +123,9 @@ export default function HeaderLinks(props) {
         </Text>
       </Flex>
       <SidebarResponsive routes={routes} />
+      
+      {/* Notifications pour SuperAdmin */}
+      <NotificationBell />
       
       {/* Bouton de retour pour Super Admin */}
       {isSuperAdminAccess && (

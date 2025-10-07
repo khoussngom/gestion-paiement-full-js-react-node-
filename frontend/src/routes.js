@@ -23,6 +23,7 @@ import SignIn from 'views/auth/signIn/SignIn';
 import LandingPage from 'views/auth/landing/LandingPage';
 import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
 import CompanySettings from 'views/admin/settings/CompanySettings';
+import EnterpriseContextDashboard from 'views/enterprise/EnterpriseContextDashboard';
 
 // Pointage Imports
 import VigileScanner from 'views/vigile/Scanner_Simple';
@@ -130,11 +131,29 @@ const routes = [
     superAdminOnly: true, // Accessible seulement au super admin
   },
   {
+    name: 'Interface Entreprise',
+    layout: '/admin',
+    path: '/entreprise/:entrepriseId/dashboard',
+    icon: <Icon as={MdHome} width="20px" height="20px" color="inherit" />,
+    component: <EnterpriseContextDashboard />,
+    hideInSidebar: true, // Caché de la sidebar normale
+    superAdminOnly: true, // Accessible seulement au super admin avec autorisation
+  },
+  {
     name: 'Déconnexion',
     layout: '/admin',
     path: '/logout',
     icon: <Icon as={MdLogout} width="20px" height="20px" color="inherit" />,
     action: 'logout',
+  },
+  // Route pour l'accès contextuel à une entreprise par le SuperAdmin
+  {
+    name: 'Interface Entreprise',
+    layout: '/admin',
+    path: '/entreprise/:entrepriseId/dashboard',
+    component: <EnterpriseContextDashboard />,
+    hideInSidebar: true,
+    superAdminEnterpriseAccess: true,
   }
 ];
 

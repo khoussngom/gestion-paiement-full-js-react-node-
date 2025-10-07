@@ -12,6 +12,8 @@ import initialTheme from './theme/theme'; //  { themeGreen }
 import { useState } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { CompanyThemeProvider } from './contexts/CompanyThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { EnterpriseProvider } from './contexts/EnterpriseContext';
 // Chakra imports
 
 export default function Main() {
@@ -20,20 +22,24 @@ export default function Main() {
   return (
     <ChakraProvider theme={currentTheme}>
       <AuthProvider>
-        <CompanyThemeProvider>
-          <Routes>
-            <Route path="auth/*" element={<AuthLayout />} />
-            <Route
-              path="admin/*"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout theme={currentTheme} setTheme={setCurrentTheme} />
-                </ProtectedRoute>
-              }
-          />
-            <Route path="/" element={<Navigate to="/auth/landing" replace />} />
-          </Routes>
-        </CompanyThemeProvider>
+        <EnterpriseProvider>
+          <NotificationProvider>
+            <CompanyThemeProvider>
+              <Routes>
+                <Route path="auth/*" element={<AuthLayout />} />
+                <Route
+                  path="admin/*"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout theme={currentTheme} setTheme={setCurrentTheme} />
+                    </ProtectedRoute>
+                  }
+              />
+                <Route path="/" element={<Navigate to="/auth/landing" replace />} />
+              </Routes>
+            </CompanyThemeProvider>
+          </NotificationProvider>
+        </EnterpriseProvider>
       </AuthProvider>
     </ChakraProvider>
   );

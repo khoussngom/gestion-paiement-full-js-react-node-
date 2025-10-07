@@ -490,4 +490,277 @@ routeurDashboard.get('/graphiques/salaires-distribution', async (req, res) => {
   }
 });
 
+// Routes spéciales pour accès SuperAdmin à une entreprise spécifique
+// GET /dashboard/statistiques/:entrepriseId - Statistiques d'une entreprise pour SuperAdmin
+routeurDashboard.get('/statistiques/:entrepriseId', async (req, res) => {
+  try {
+    const { entrepriseId } = req.params;
+    const utilisateur = (req as any).utilisateur;
+    
+    console.log('🔍 SuperAdmin accède aux stats entreprise:', entrepriseId);
+    
+    // Vérifier que l'utilisateur est SuperAdmin ou a une autorisation valide
+    if (utilisateur?.role !== 'SUPER_ADMIN' && !utilisateur?.isSuperAdminAccess) {
+      return res.status(403).json({
+        succes: false,
+        message: 'Accès non autorisé - SuperAdmin requis'
+      });
+    }
+
+    const targetEntrepriseId = entrepriseId; // Garder comme string
+    
+    // Récupérer les données de l'entreprise ciblée
+    const totalEmployes = await prisma.employe.count({
+      where: { entrepriseId: targetEntrepriseId }
+    });
+
+    const employesActifs = await prisma.employe.count({
+      where: { entrepriseId: targetEntrepriseId, actif: true }
+    });
+
+    const employesInactifs = await prisma.employe.count({
+      where: { entrepriseId: targetEntrepriseId, actif: false }
+    });
+
+    const employes = await prisma.employe.findMany({
+      where: { entrepriseId: targetEntrepriseId, actif: true },
+      select: {
+        poste: true,
+        typeContrat: true,
+        salaireFixe: true,
+        tauxHonoraire: true,
+        tauxSalaireHoraire: true
+      }
+    });
+
+    const totalPaiements = await prisma.paiement.count({
+      where: { entrepriseId: targetEntrepriseId }
+    });
+
+    const montantTotalPaie = await prisma.paiement.aggregate({
+      where: { entrepriseId: targetEntrepriseId },
+      _sum: { montant: true }
+    });
+
+    // Calculer la masse salariale
+    const masseSalariale = employes.reduce((total, emp) => {
+      const salaire = Number(emp.salaireFixe || emp.tauxHonoraire || emp.tauxSalaireHoraire || 0);
+      return total + salaire;
+    }, 0);
+
+    // Nouveaux employés ce mois
+    const debutMois = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const nouveauxEmployesCeMois = await prisma.employe.count({
+      where: { 
+        entrepriseId: targetEntrepriseId, 
+        actif: true,
+        dateCreation: { gte: debutMois }
+      }
+    });
+
+    // Informations entreprise
+    const entreprise = await prisma.entreprise.findUnique({
+      where: { id: targetEntrepriseId },
+      select: {
+        id: true,
+        nom: true,
+        adresse: true,
+        logo: true,
+        couleurPrimaire: true,
+        telephone: true,
+        email: true
+      }
+    });
+
+    // Derniers paiements
+    const derniersPaiements = await prisma.paiement.findMany({
+      where: { entrepriseId: targetEntrepriseId },
+      include: { employe: true },
+      orderBy: { dateCreation: 'desc' },
+      take: 5
+    });
+
+    // Cycles actifs
+    const cyclesActifs = await prisma.cyclePaie.count({
+      where: { 
+        entrepriseId: targetEntrepriseId,
+        statut: { in: [StatutCyclePaie.BROUILLON, StatutCyclePaie.APPROUVE] }
+      }
+    });
+
+    const totalCycles = await prisma.cyclePaie.count({
+      where: { entrepriseId: targetEntrepriseId }
+    });
+
+    // Statistiques par mode de paiement
+    const statsParMode = await prisma.paiement.groupBy({
+      by: ['modePaiement'],
+      where: { entrepriseId: targetEntrepriseId },
+      _count: { _all: true },
+      _sum: { montant: true }
+    });
+
+    // Statistiques par type de contrat
+    const employesParTypeContrat = employes.reduce((acc: any, emp) => {
+      acc[emp.typeContrat] = (acc[emp.typeContrat] || 0) + 1;
+      return acc;
+    }, {});
+
+    const donneesFormatees = {
+      entreprise: {
+        id: entreprise?.id,
+        nom: entreprise?.nom,
+        adresse: entreprise?.adresse,
+        logo: entreprise?.logo,
+        couleurPrimaire: entreprise?.couleurPrimaire,
+        telephone: entreprise?.telephone,
+        email: entreprise?.email
+      },
+      employes: {
+        total: totalEmployes,
+        actifs: employesActifs,
+        inactifs: employesInactifs,
+        nouveauxCeMois: nouveauxEmployesCeMois,
+        parTypeContrat: employesParTypeContrat
+      },
+      paiements: {
+        total: {
+          nombre: totalPaiements,
+          montant: Number(montantTotalPaie._sum.montant || 0)
+        },
+        masseSalarialeTotal: masseSalariale,
+        variationMois: 0,
+        parMode: statsParMode.map(stat => ({
+          mode: stat.modePaiement,
+          nombre: stat._count._all,
+          montantTotal: Number(stat._sum?.montant || 0)
+        })),
+        derniersPaiements: derniersPaiements.map(p => ({
+          id: p.id,
+          employe: p.employe.nomComplet,
+          montant: Number(p.montant),
+          modePaiement: p.modePaiement,
+          date: p.datePaiement
+        }))
+      },
+      cycles: {
+        total: totalCycles,
+        enCours: cyclesActifs
+      },
+      bulletins: {
+        total: 0,
+        cesMois: 0
+      },
+      // Compatibilité ancien format
+      totalEmployes,
+      totalPaiements,
+      montantTotalPaie: Number(montantTotalPaie._sum?.montant || 0)
+    };
+    
+    console.log('📊 Stats entreprise récupérées:', {
+      entreprise: entreprise?.nom,
+      totalEmployes,
+      totalPaiements,
+      montantTotal: montantTotalPaie._sum?.montant
+    });
+
+    res.status(200).json({
+      succes: true,
+      donnees: donneesFormatees,
+      message: `Statistiques de ${entreprise?.nom} récupérées avec succès`
+    });
+  } catch (error: any) {
+    console.error('Erreur stats SuperAdmin entreprise:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur serveur',
+      erreur: error.message
+    });
+  }
+});
+
+// GET /dashboard/export-employes/:entrepriseId - Export employés entreprise spécifique
+routeurDashboard.get('/export-employes/:entrepriseId', async (req, res) => {
+  try {
+    const { entrepriseId } = req.params;
+    const utilisateur = (req as any).utilisateur;
+    
+    // Vérifier autorisation SuperAdmin
+    if (utilisateur?.role !== 'SUPER_ADMIN' && !utilisateur?.isSuperAdminAccess) {
+      return res.status(403).json({
+        succes: false,
+        message: 'Accès non autorisé - SuperAdmin requis'
+      });
+    }
+
+    const targetEntrepriseId = entrepriseId; // Garder comme string
+    const employes = await serviceDashboard.exporterEmployes(targetEntrepriseId);
+    
+    res.status(200).json({
+      succes: true,
+      donnees: employes,
+      message: `Export de ${employes.length} employés réalisé avec succès`
+    });
+  } catch (error: any) {
+    console.error('Erreur export SuperAdmin:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur serveur',
+      erreur: error.message
+    });
+  }
+});
+
+// GET /dashboard/rapport-mensuel/:entrepriseId/:annee/:mois - Rapport mensuel entreprise spécifique
+routeurDashboard.get('/rapport-mensuel/:entrepriseId/:annee/:mois', async (req, res) => {
+  try {
+    const { entrepriseId, annee, mois } = req.params;
+    const utilisateur = (req as any).utilisateur;
+    
+    // Vérifier autorisation SuperAdmin
+    if (utilisateur?.role !== 'SUPER_ADMIN' && !utilisateur?.isSuperAdminAccess) {
+      return res.status(403).json({
+        succes: false,
+        message: 'Accès non autorisé - SuperAdmin requis'
+      });
+    }
+
+    const targetEntrepriseId = entrepriseId; // Garder comme string
+    const currentYear = parseInt(annee);
+    const currentMonth = parseInt(mois);
+    
+    const rapportComplet = await serviceDashboard.genererRapportMensuel(targetEntrepriseId, currentYear, currentMonth);
+    
+    const rapport = {
+      periode: `${currentMonth}/${currentYear}`,
+      totalPaiements: rapportComplet.resume.nombrePaiements,
+      montantTotal: rapportComplet.resume.montantTotalPaye,
+      nombreEmployes: rapportComplet.resume.nombreEmployes,
+      paiementsParType: rapportComplet.paiements.parMode,
+      details: rapportComplet.paiements.liste.map((p: any) => ({
+        nomEmploye: p.employe,
+        montant: p.montant,
+        datePaiement: p.date,
+        type: p.modePaiement,
+        reference: p.reference
+      })),
+      entreprise: rapportComplet.entreprise,
+      employes: rapportComplet.employes
+    };
+    
+    res.status(200).json({
+      succes: true,
+      donnees: rapport,
+      message: `Rapport mensuel pour ${currentMonth}/${currentYear} généré avec succès`
+    });
+  } catch (error: any) {
+    console.error('Erreur rapport SuperAdmin:', error);
+    res.status(500).json({
+      succes: false,
+      message: 'Erreur serveur',
+      erreur: error.message
+    });
+  }
+});
+
 export default routeurDashboard;

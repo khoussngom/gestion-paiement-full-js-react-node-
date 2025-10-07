@@ -10,14 +10,19 @@ import {
   HStack,
   Button,
   useToast,
+  Alert,
+  AlertIcon,
+  Badge,
+  Divider,
+  Icon
 } from '@chakra-ui/react';
-import { MdPerson, MdWork, MdAttachMoney, MdTrendingUp, MdDownload, MdAssessment } from 'react-icons/md';
-import MiniStatistics from 'components/card/MiniStatistics';
+import { MdPerson, MdWork, MdAttachMoney, MdTrendingUp, MdDownload, MdAssessment, MdArrowBack, MdBusiness, MdAccessTime } from 'react-icons/md';
 import PaymentModeChart from 'components/charts/PaymentModeChart';
 import EmployeeStatsChart from 'components/charts/EmployeeStatsChart';
-import { dashboardService } from 'services/api';
+import dashboardService from 'services/dashboardService';
 import { exportToCSV, formatEmployeeForExport, formatCurrency } from 'utils/export';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEnterprise } from 'contexts/EnterpriseContext';
 
 export default function PayrollDashboard() {
   const [statistics, setStatistics] = useState(null);
@@ -25,21 +30,39 @@ export default function PayrollDashboard() {
   const [exportLoading, setExportLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const { entrepriseId } = useParams();
+  const { currentEntreprise, isEnterpriseMode, exitEnterpriseMode } = useEnterprise();
   
-  const textColor = useColorModeValue('secondaryGray.900', 'white');
   const cardShadow = useColorModeValue('0px 18px 40px rgba(112, 144, 176, 0.12)', 'unset');
+
+  // Déterminer si on est en mode accès entreprise
+  const isEnterpriseContext = entrepriseId || isEnterpriseMode;
+  const targetEnterpriseId = entrepriseId || currentEntreprise?.id;
 
   const loadStatistics = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await dashboardService.getStatistics();
-      if (response.succes) {
+      let response;
+      
+      if (isEnterpriseContext && targetEnterpriseId) {
+        console.log('🏢 Chargement stats pour entreprise:', targetEnterpriseId);
+        response = await dashboardService.getStatisticsForEnterprise(targetEnterpriseId);
+      } else {
+        console.log('👤 Chargement stats utilisateur standard');
+        response = await dashboardService.getStatistics();
+      }
+      
+      if (response && response.succes) {
         setStatistics(response.donnees);
+        console.log('📊 Statistiques chargées:', response.donnees);
+      } else {
+        throw new Error((response && response.message) || 'Erreur lors du chargement');
       }
     } catch (error) {
+      console.error('❌ Erreur chargement stats:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de charger les statistiques',
+        description: error.message || 'Impossible de charger les statistiques',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -47,14 +70,20 @@ export default function PayrollDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [isEnterpriseContext, targetEnterpriseId, toast]);
 
   const handleExportEmployees = useCallback(async () => {
     try {
       setExportLoading(true);
-      const response = await dashboardService.exportEmployees();
+      let response;
       
-      if (response.succes && response.donnees) {
+      if (isEnterpriseContext && targetEnterpriseId) {
+        response = await dashboardService.exportEmployeesForEnterprise(targetEnterpriseId);
+      } else {
+        response = await dashboardService.exportEmployees();
+      }
+      
+      if (response && response.succes && response.donnees) {
         const formattedData = response.donnees.map(formatEmployeeForExport);
         exportToCSV(formattedData, `employes-${new Date().toISOString().slice(0, 10)}.csv`);
         
@@ -77,202 +106,226 @@ export default function PayrollDashboard() {
     } finally {
       setExportLoading(false);
     }
-  }, [toast]);
-
-  const handleGenerateReport = useCallback(async () => {
-    try {
-      const now = new Date();
-      const response = await dashboardService.getMonthlyReport(now.getFullYear(), now.getMonth() + 1);
-      
-      if (response.succes && response.donnees) {
-        // Ici on pourrait ouvrir une modal avec le rapport ou télécharger un PDF
-        console.log('Rapport:', response.donnees);
-        toast({
-          title: 'Rapport généré',
-          description: 'Rapport mensuel généré avec succès',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Erreur de rapport',
-        description: 'Impossible de générer le rapport',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  }, [toast]);
+  }, [isEnterpriseContext, targetEnterpriseId, toast]);
 
   useEffect(() => {
     loadStatistics();
   }, [loadStatistics]);
 
-  if (loading || !statistics) {
+  if (loading) {
     return (
       <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
-        <Text textAlign="center">Chargement des statistiques...</Text>
+        <Text textAlign="center">
+          {isEnterpriseContext ? 
+            'Chargement des données de l\'entreprise...' : 
+            'Chargement des statistiques...'
+          }
+        </Text>
+      </Box>
+    );
+  }
+
+  if (!statistics) {
+    return (
+      <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
+        <Alert status="warning">
+          <AlertIcon />
+          Aucune donnée disponible pour cette entreprise
+        </Alert>
       </Box>
     );
   }
 
   return (
     <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
-      {/* Header */}
-      {/* <Box mb="20px">
-        <Text fontSize="2xl" fontWeight="700" color={textColor} mb={2}>
-          Tableau de Bord - Gestion des Salariés
-        </Text>
-        <Text color="gray.500">
-          Vue d'ensemble de votre entreprise - {statistics.entreprise?.nom}
-        </Text>
-      </Box> */}
+      {/* Header avec contexte entreprise */}
+      {isEnterpriseContext && (
+        <Box mb="20px">
+          <Card bg="blue.50" borderLeft="4px solid" borderLeftColor="blue.500">
+            <CardBody>
+              <HStack justify="space-between" align="center">
+                <VStack align="start" spacing={1}>
+                  <HStack>
+                    <Icon as={MdBusiness} color="blue.500" />
+                    <Text fontSize="2xl" fontWeight="700" color="blue.700">
+                      {statistics.entreprise?.nom || 'Entreprise'}
+                    </Text>
+                  </HStack>
+                  <Text fontSize="sm" color="blue.600">
+                    🏢 Accès entreprise accordé - Interface SuperAdmin
+                  </Text>
+                </VStack>
+                
+                <Button
+                  leftIcon={<MdArrowBack />}
+                  onClick={() => {
+                    if (exitEnterpriseMode) {
+                      exitEnterpriseMode();
+                    }
+                    navigate('/admin/super-admin');
+                  }}
+                  variant="outline"
+                  colorScheme="blue"
+                >
+                  Retour SuperAdmin
+                </Button>
+              </HStack>
+
+              <Divider my={3} />
+
+              <HStack spacing={4} wrap="wrap">
+                <HStack>
+                  <Icon as={MdAccessTime} color="orange.500" />
+                  <Text fontSize="sm">
+                    <strong>Accès temporaire SuperAdmin</strong>
+                  </Text>
+                </HStack>
+                
+                <Badge colorScheme="blue" variant="subtle">
+                  Contexte d'entreprise actif
+                </Badge>
+              </HStack>
+            </CardBody>
+          </Card>
+        </Box>
+      )}
 
       {/* Statistiques principales */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap="20px" mb="20px">
-  {/* Employés Actifs */}
-  <Card
-    p={5}
-    borderRadius="xl"
-    boxShadow="md"
-    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
-  >
-    <HStack spacing={4} align="center">
-      <Box
-        w="56px"
-        h="56px"
-        bg="linear-gradient(90deg, #4481EB 0%, #04BEFE 100%)"
-        borderRadius="12px"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <MdPerson color="white" size="24px" />
-      </Box>
-      <VStack align="start" spacing={1}>
-        <Text fontSize="sm" color="gray.500">
-          Employés Actifs
-        </Text>
-        <Text fontSize="2xl" fontWeight="bold" color="blue.500">
-          {statistics.employes?.actifs || 0}
-        </Text>
-        <Text fontSize="xs" color="green.500">
-          +{statistics.employes?.nouveauxCeMois || 0} ce mois
-        </Text>
-      </VStack>
-    </HStack>
-  </Card>
-
-  {/* Cycles en cours */}
-  <Card
-    p={5}
-    borderRadius="xl"
-    boxShadow="md"
-    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
-  >
-    <HStack spacing={4} align="center">
-      <Box
-        w="56px"
-        h="56px"
-        bg="linear-gradient(90deg, #FFB547 0%, #FFB547 100%)"
-        borderRadius="12px"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <MdWork color="white" size="24px" />
-      </Box>
-      <VStack align="start" spacing={1}>
-        <Text fontSize="sm" color="gray.500">
-          Cycles en Cours
-        </Text>
-        <Text fontSize="2xl" fontWeight="bold" color="orange.500">
-          {statistics.cycles?.enCours || 0}
-        </Text>
-        <Text fontSize="xs" color="gray.600">
-          {statistics.cycles?.total || 0} au total
-        </Text>
-      </VStack>
-    </HStack>
-  </Card>
-
-  {/* Masse salariale */}
-  <Card
-    p={5}
-    borderRadius="xl"
-    boxShadow="md"
-    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
-  >
-    <HStack spacing={4} align="center">
-      <Box
-        w="56px"
-        h="56px"
-        bg="linear-gradient(90deg, #01B574 0%, #28C76F 100%)"
-        borderRadius="12px"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <MdAttachMoney color="white" size="24px" />
-      </Box>
-      <VStack align="start" spacing={1}>
-        <Text fontSize="sm" color="gray.500">
-          Masse Salariale
-        </Text>
-        <Text fontSize="2xl" fontWeight="bold" color="green.500">
-          {(statistics.paiements?.masseSalarialeTotal || 0).toLocaleString()} FCFA
-        </Text>
-        <Text
-          fontSize="xs"
-          color={
-            (statistics.paiements?.variationMois || 0) >= 0
-              ? "green.500"
-              : "red.500"
-          }
+        {/* Employés Actifs */}
+        <Card
+          p={5}
+          borderRadius="xl"
+          boxShadow="md"
+          _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
         >
-          {statistics.paiements?.variationMois || 0}% vs mois dernier
-        </Text>
-      </VStack>
-    </HStack>
-  </Card>
+          <HStack spacing={4} align="center">
+            <Box
+              w="56px"
+              h="56px"
+              bg="linear-gradient(90deg, #4481EB 0%, #04BEFE 100%)"
+              borderRadius="12px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <MdPerson color="white" size="24px" />
+            </Box>
+            <VStack align="start" spacing={1}>
+              <Text fontSize="sm" color="gray.500">
+                Employés Actifs
+              </Text>
+              <Text fontSize="2xl" fontWeight="bold" color="blue.500">
+                {(statistics.employes && statistics.employes.actifs) || statistics.totalEmployes || 0}
+              </Text>
+              <Text fontSize="xs" color="green.500">
+                +{(statistics.employes && statistics.employes.nouveauxCeMois) || 0} ce mois
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
 
-  {/* Bulletins générés */}
-  <Card
-    p={5}
-    borderRadius="xl"
-    boxShadow="md"
-    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
-  >
-    <HStack spacing={4} align="center">
-      <Box
-        w="56px"
-        h="56px"
-        bg="linear-gradient(90deg, #A855F7 0%, #C084FC 100%)"
-        borderRadius="12px"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <MdTrendingUp color="white" size="24px" />
-      </Box>
-      <VStack align="start" spacing={1}>
-        <Text fontSize="sm" color="gray.500">
-          Bulletins Générés
-        </Text>
-        <Text fontSize="2xl" fontWeight="bold" color="purple.500">
-          {statistics.bulletins?.total || 0}
-        </Text>
-        <Text fontSize="xs" color="gray.600">
-          {statistics.bulletins?.cesMois || 0} ce mois
-        </Text>
-      </VStack>
-    </HStack>
-  </Card>
-</SimpleGrid>
+        {/* Cycles en cours */}
+        <Card
+          p={5}
+          borderRadius="xl"
+          boxShadow="md"
+          _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+        >
+          <HStack spacing={4} align="center">
+            <Box
+              w="56px"
+              h="56px"
+              bg="linear-gradient(90deg, #FFB547 0%, #FFB547 100%)"
+              borderRadius="12px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <MdWork color="white" size="24px" />
+            </Box>
+            <VStack align="start" spacing={1}>
+              <Text fontSize="sm" color="gray.500">
+                Cycles en Cours
+              </Text>
+              <Text fontSize="2xl" fontWeight="bold" color="orange.500">
+                {(statistics.cycles && statistics.cycles.enCours) || 0}
+              </Text>
+              <Text fontSize="xs" color="gray.600">
+                {(statistics.cycles && statistics.cycles.total) || 0} au total
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
 
+        {/* Masse salariale */}
+        <Card
+          p={5}
+          borderRadius="xl"
+          boxShadow="md"
+          _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+        >
+          <HStack spacing={4} align="center">
+            <Box
+              w="56px"
+              h="56px"
+              bg="linear-gradient(90deg, #01B574 0%, #28C76F 100%)"
+              borderRadius="12px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <MdAttachMoney color="white" size="24px" />
+            </Box>
+            <VStack align="start" spacing={1}>
+              <Text fontSize="sm" color="gray.500">
+                Masse Salariale
+              </Text>
+              <Text fontSize="2xl" fontWeight="bold" color="green.500">
+                {((statistics.paiements && statistics.paiements.masseSalarialeTotal) || statistics.montantTotalPaie || 0).toLocaleString()} FCFA
+              </Text>
+              <Text fontSize="xs" color="green.500">
+                {((statistics.paiements && statistics.paiements.variationMois) || 0)}% vs mois dernier
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
 
+        {/* Paiements */}
+        <Card
+          p={5}
+          borderRadius="xl"
+          boxShadow="md"
+          _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+        >
+          <HStack spacing={4} align="center">
+            <Box
+              w="56px"
+              h="56px"
+              bg="linear-gradient(90deg, #A855F7 0%, #C084FC 100%)"
+              borderRadius="12px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <MdTrendingUp color="white" size="24px" />
+            </Box>
+            <VStack align="start" spacing={1}>
+              <Text fontSize="sm" color="gray.500">
+                Paiements
+              </Text>
+              <Text fontSize="2xl" fontWeight="bold" color="purple.500">
+                {statistics.totalPaiements || 0}
+              </Text>
+              <Text fontSize="xs" color="gray.600">
+                Total effectués
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
+      </SimpleGrid>
+
+      {/* Graphiques */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap="20px" mb="20px">
         {/* Statistiques des employés */}
         <Card boxShadow={cardShadow}>
@@ -284,7 +337,7 @@ export default function PayrollDashboard() {
         {/* Répartition des paiements par mode */}
         <Card boxShadow={cardShadow}>
           <CardBody>
-            <PaymentModeChart data={statistics.paiements?.parMode} />
+            <PaymentModeChart data={statistics.paiements && statistics.paiements.parMode} />
           </CardBody>
         </Card>
       </SimpleGrid>
@@ -311,7 +364,6 @@ export default function PayrollDashboard() {
               </Button>
               <Button
                 leftIcon={<MdAssessment />}
-                onClick={handleGenerateReport}
                 colorScheme="purple"
                 variant="outline"
                 size="sm"
@@ -329,24 +381,25 @@ export default function PayrollDashboard() {
               Derniers Paiements
             </Text>
             <VStack spacing={3} align="stretch">
-              {statistics.paiements?.derniersPaiements?.map((paiement, index) => (
-                <HStack key={index} justify="space-between" p={3} bg="gray.50" borderRadius="md">
-                  <VStack align="start" spacing={1}>
-                    <Text fontWeight="600" fontSize="sm">{paiement.employe}</Text>
-                    <Text fontSize="xs" color="gray.500">
-                      {new Date(paiement.date).toLocaleDateString()} - {paiement.modePaiement}
+              {(statistics.paiements && statistics.paiements.derniersPaiements && statistics.paiements.derniersPaiements.length > 0) ? 
+                statistics.paiements.derniersPaiements.map((paiement, index) => (
+                  <HStack key={index} justify="space-between" p={3} bg="gray.50" borderRadius="md">
+                    <VStack align="start" spacing={1}>
+                      <Text fontWeight="600" fontSize="sm">{paiement.employe}</Text>
+                      <Text fontSize="xs" color="gray.500">
+                        {new Date(paiement.date).toLocaleDateString()} - {paiement.modePaiement}
+                      </Text>
+                    </VStack>
+                    <Text fontWeight="600" color="green.500">
+                      {formatCurrency(paiement.montant)}
                     </Text>
-                  </VStack>
-                  <Text fontWeight="600" color="green.500">
-                    {formatCurrency(paiement.montant)}
+                  </HStack>
+                )) : (
+                  <Text color="gray.500" textAlign="center" py={4}>
+                    Aucun paiement récent
                   </Text>
-                </HStack>
-              ))}
-              {(!statistics.paiements?.derniersPaiements || statistics.paiements.derniersPaiements.length === 0) && (
-                <Text color="gray.500" textAlign="center" py={4}>
-                  Aucun paiement récent
-                </Text>
-              )}
+                )
+              }
             </VStack>
           </CardBody>
         </Card>
@@ -361,24 +414,33 @@ export default function PayrollDashboard() {
           <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
             <Button
               colorScheme="brand"
-              onClick={() => navigate('/admin/employees')}
+              onClick={() => navigate(isEnterpriseContext ? 
+                `/admin/entreprise/${targetEnterpriseId}/employees` : 
+                '/admin/employees'
+              )}
               leftIcon={<MdPerson />}
             >
               Gérer les Employés
             </Button>
             <Button
               colorScheme="orange"
-              onClick={() => navigate('/admin/payroll-cycles')}
+              onClick={() => navigate(isEnterpriseContext ? 
+                `/admin/entreprise/${targetEnterpriseId}/payroll-cycles` : 
+                '/admin/payroll-cycles'
+              )}
               leftIcon={<MdWork />}
             >
               Cycles de Paie
             </Button>
             <Button
               colorScheme="green"
-              onClick={() => navigate('/admin/payslips')}
+              onClick={() => navigate(isEnterpriseContext ? 
+                `/admin/entreprise/${targetEnterpriseId}/payments` : 
+                '/admin/payments'
+              )}
               leftIcon={<MdAttachMoney />}
             >
-              Bulletins de Paie
+              Paiements
             </Button>
           </SimpleGrid>
         </CardBody>
