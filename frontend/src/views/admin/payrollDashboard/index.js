@@ -121,93 +121,157 @@ export default function PayrollDashboard() {
   return (
     <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
       {/* Header */}
-      <Box mb="20px">
+      {/* <Box mb="20px">
         <Text fontSize="2xl" fontWeight="700" color={textColor} mb={2}>
           Tableau de Bord - Gestion des Salariés
         </Text>
         <Text color="gray.500">
           Vue d'ensemble de votre entreprise - {statistics.entreprise?.nom}
         </Text>
-      </Box>
+      </Box> */}
 
       {/* Statistiques principales */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap="20px" mb="20px">
-        <MiniStatistics
-          startContent={
-            <Box
-              w="56px"
-              h="56px"
-              bg="linear-gradient(90deg, #4481EB 0%, #04BEFE 100%)"
-              borderRadius="12px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <MdPerson color="white" size="24px" />
-            </Box>
-          }
-          name="Employés Actifs"
-          value={statistics.employes?.actifs || 0}
-          growth={`+${statistics.employes?.nouveauxCeMois || 0} ce mois`}
-        />
-        
-        <MiniStatistics
-          startContent={
-            <Box
-              w="56px"
-              h="56px"
-              bg="linear-gradient(90deg, #FFB547 0%, #FFB547 100%)"
-              borderRadius="12px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <MdWork color="white" size="24px" />
-            </Box>
-          }
-          name="Cycles en Cours"
-          value={statistics.cycles?.enCours || 0}
-          growth={`${statistics.cycles?.total || 0} au total`}
-        />
+  {/* Employés Actifs */}
+  <Card
+    p={5}
+    borderRadius="xl"
+    boxShadow="md"
+    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+  >
+    <HStack spacing={4} align="center">
+      <Box
+        w="56px"
+        h="56px"
+        bg="linear-gradient(90deg, #4481EB 0%, #04BEFE 100%)"
+        borderRadius="12px"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <MdPerson color="white" size="24px" />
+      </Box>
+      <VStack align="start" spacing={1}>
+        <Text fontSize="sm" color="gray.500">
+          Employés Actifs
+        </Text>
+        <Text fontSize="2xl" fontWeight="bold" color="blue.500">
+          {statistics.employes?.actifs || 0}
+        </Text>
+        <Text fontSize="xs" color="green.500">
+          +{statistics.employes?.nouveauxCeMois || 0} ce mois
+        </Text>
+      </VStack>
+    </HStack>
+  </Card>
 
-        <MiniStatistics
-          startContent={
-            <Box
-              w="56px"
-              h="56px"
-              bg="linear-gradient(90deg, #01B574 0%, #28C76F 100%)"
-              borderRadius="12px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <MdAttachMoney color="white" size="24px" />
-            </Box>
-          }
-          name="Masse Salariale"
-          value={`${(statistics.paiements?.masseSalarialeTotal || 0).toLocaleString()} FCFA`}
-          growth={`${statistics.paiements?.variationMois || 0}% vs mois dernier`}
-        />
+  {/* Cycles en cours */}
+  <Card
+    p={5}
+    borderRadius="xl"
+    boxShadow="md"
+    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+  >
+    <HStack spacing={4} align="center">
+      <Box
+        w="56px"
+        h="56px"
+        bg="linear-gradient(90deg, #FFB547 0%, #FFB547 100%)"
+        borderRadius="12px"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <MdWork color="white" size="24px" />
+      </Box>
+      <VStack align="start" spacing={1}>
+        <Text fontSize="sm" color="gray.500">
+          Cycles en Cours
+        </Text>
+        <Text fontSize="2xl" fontWeight="bold" color="orange.500">
+          {statistics.cycles?.enCours || 0}
+        </Text>
+        <Text fontSize="xs" color="gray.600">
+          {statistics.cycles?.total || 0} au total
+        </Text>
+      </VStack>
+    </HStack>
+  </Card>
 
-        <MiniStatistics
-          startContent={
-            <Box
-              w="56px"
-              h="56px"
-              bg="linear-gradient(90deg, #A855F7 0%, #C084FC 100%)"
-              borderRadius="12px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <MdTrendingUp color="white" size="24px" />
-            </Box>
+  {/* Masse salariale */}
+  <Card
+    p={5}
+    borderRadius="xl"
+    boxShadow="md"
+    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+  >
+    <HStack spacing={4} align="center">
+      <Box
+        w="56px"
+        h="56px"
+        bg="linear-gradient(90deg, #01B574 0%, #28C76F 100%)"
+        borderRadius="12px"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <MdAttachMoney color="white" size="24px" />
+      </Box>
+      <VStack align="start" spacing={1}>
+        <Text fontSize="sm" color="gray.500">
+          Masse Salariale
+        </Text>
+        <Text fontSize="2xl" fontWeight="bold" color="green.500">
+          {(statistics.paiements?.masseSalarialeTotal || 0).toLocaleString()} FCFA
+        </Text>
+        <Text
+          fontSize="xs"
+          color={
+            (statistics.paiements?.variationMois || 0) >= 0
+              ? "green.500"
+              : "red.500"
           }
-          name="Bulletins Générés"
-          value={statistics.bulletins?.total || 0}
-          growth={`${statistics.bulletins?.cesMois || 0} ce mois`}
-        />
-      </SimpleGrid>
+        >
+          {statistics.paiements?.variationMois || 0}% vs mois dernier
+        </Text>
+      </VStack>
+    </HStack>
+  </Card>
+
+  {/* Bulletins générés */}
+  <Card
+    p={5}
+    borderRadius="xl"
+    boxShadow="md"
+    _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "0.2s" }}
+  >
+    <HStack spacing={4} align="center">
+      <Box
+        w="56px"
+        h="56px"
+        bg="linear-gradient(90deg, #A855F7 0%, #C084FC 100%)"
+        borderRadius="12px"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <MdTrendingUp color="white" size="24px" />
+      </Box>
+      <VStack align="start" spacing={1}>
+        <Text fontSize="sm" color="gray.500">
+          Bulletins Générés
+        </Text>
+        <Text fontSize="2xl" fontWeight="bold" color="purple.500">
+          {statistics.bulletins?.total || 0}
+        </Text>
+        <Text fontSize="xs" color="gray.600">
+          {statistics.bulletins?.cesMois || 0} ce mois
+        </Text>
+      </VStack>
+    </HStack>
+  </Card>
+</SimpleGrid>
+
 
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap="20px" mb="20px">
         {/* Statistiques des employés */}

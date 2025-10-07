@@ -78,7 +78,7 @@ export default function HeaderLinks(props) {
       borderRadius="30px"
       boxShadow={shadow}
     >
-      <SearchBar
+      {/* <SearchBar
         mb={() => {
           if (secondary) {
             return { base: '10px', md: 'unset' };
@@ -87,7 +87,7 @@ export default function HeaderLinks(props) {
         }}
         me="10px"
         borderRadius="30px"
-      />
+      /> */}
       <Flex
         bg={ethBg}
         display={secondary ? 'flex' : 'none'}
@@ -143,7 +143,7 @@ export default function HeaderLinks(props) {
         </Button>
       )}
 
-      <Menu>
+      {/* <Menu>
         <MenuButton p="0px">
           <Icon
             mt="6px"
@@ -200,9 +200,9 @@ export default function HeaderLinks(props) {
             </MenuItem>
           </Flex>
         </MenuList>
-      </Menu>
+      </Menu> */}
 
-      <Menu>
+      {/* <Menu>
         <MenuButton p="0px">
           <Icon
             mt="6px"
@@ -224,13 +224,13 @@ export default function HeaderLinks(props) {
           minW={{ base: 'unset' }}
           maxW={{ base: '360px', md: 'unset' }}
         >
-          {/* <Image src={navImage} borderRadius="16px" mb="28px" /> */}
+          <Image src={navImage} borderRadius="16px" mb="28px" />
           <Flex flexDirection="column">
 
       
           </Flex>
         </MenuList>
-      </Menu>
+      </Menu> */}
 
       <Button
         variant="no-hover"
@@ -285,33 +285,33 @@ export default function HeaderLinks(props) {
               Hey, {user ? `${user.prenom} ${user.nom}` : 'Utilisateur'}
             </Text>
           </Flex>
-          <Flex flexDirection="column" p="10px">
-            <MenuItem
-              _hover={{ bg: 'none' }}
-              _focus={{ bg: 'none' }}
-              borderRadius="8px"
-              px="14px"
-            >
-              <Text fontSize="sm">Profile Settings</Text>
-            </MenuItem>
-            <MenuItem
-              _hover={{ bg: 'none' }}
-              _focus={{ bg: 'none' }}
-              borderRadius="8px"
-              px="14px"
-            >
-              <Text fontSize="sm">Newsletter Settings</Text>
-            </MenuItem>
-            <MenuItem
-              _hover={{ bg: 'none' }}
-              _focus={{ bg: 'none' }}
-              color="red.400"
-              borderRadius="8px"
-              px="14px"
-            >
-              <Text fontSize="sm">Log out</Text>
-            </MenuItem>
-          </Flex>
+            {/* <Flex flexDirection="column" p="10px">
+              <MenuItem
+                _hover={{ bg: 'none' }}
+                _focus={{ bg: 'none' }}
+                borderRadius="8px"
+                px="14px"
+              >
+                <Text fontSize="sm">Profile Settings</Text>
+              </MenuItem>
+              <MenuItem
+                _hover={{ bg: 'none' }}
+                _focus={{ bg: 'none' }}
+                borderRadius="8px"
+                px="14px"
+              >
+                <Text fontSize="sm">Newsletter Settings</Text>
+              </MenuItem>
+              <MenuItem
+                _hover={{ bg: 'none' }}
+                _focus={{ bg: 'none' }}
+                color="red.400"
+                borderRadius="8px"
+                px="14px"
+              >
+                <Text fontSize="sm">Log out</Text>
+              </MenuItem>
+            </Flex> */}
         </MenuList>
       </Menu>
     </Flex>
