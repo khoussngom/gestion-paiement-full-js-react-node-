@@ -45,6 +45,7 @@ import {
 } from 'react-icons/md';
 import ColorPicker from 'components/colorPicker/ColorPicker';
 import CreateVigileModal from 'components/modals/CreateVigileModal';
+import DonnerAccesSuperAdmin from 'components/access/DonnerAccesSuperAdmin';
 
 const CompanySettings = () => {
   const [companyData, setCompanyData] = useState(null);
@@ -531,6 +532,33 @@ const CompanySettings = () => {
                     Cette couleur sera utilisée pour personnaliser l'interface de votre entreprise
                   </Text>
                 </Box>
+              </VStack>
+            </VStack>
+          </CardBody>
+        </Card>
+
+        <Divider />
+
+        {/* Security Section */}
+        <Card>
+          <CardBody>
+            <VStack spacing={4}>
+              <Heading size="md" alignSelf="flex-start" display="flex" alignItems="center">
+                <MdSecurity style={{ marginRight: '8px' }} />
+                Sécurité & Accès
+              </Heading>
+              
+              <VStack spacing={4} w="full" align="start">
+                <Text fontSize="sm" color="gray.600">
+                  Gérez les autorisations d'accès temporaires pour le SuperAdmin de votre entreprise.
+                </Text>
+                
+                <DonnerAccesSuperAdmin 
+                  entrepriseId={companyData?.id}
+                  onAccessGranted={() => {
+                    // Optionnel: rafraîchir les données ou afficher une notification
+                  }}
+                />
               </VStack>
             </VStack>
           </CardBody>

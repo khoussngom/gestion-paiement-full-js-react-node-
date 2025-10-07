@@ -116,3 +116,21 @@ export interface IPointage {
   valideParVigile: boolean;
   vigileId?: string;
 }
+
+export interface ResultatService<T = any> {
+  succes: boolean;
+  message: string;
+  donnees?: T;
+  erreurs?: string[];
+}
+
+export interface IAutorisationAcces {
+  id: string;
+  entrepriseId: string;
+  superAdminId: string;
+  adminId: string;
+  dateCreation: Date;
+  dateExpiration: Date;
+  estActif: boolean;
+  raisonAcces?: string;
+}
