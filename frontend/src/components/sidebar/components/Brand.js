@@ -12,6 +12,10 @@ export function SidebarBrand() {
   let logoColor = useColorModeValue("navy.700", "white");
   const [entrepriseInfo, setEntrepriseInfo] = useState(null);
   const { companyColors } = useCompanyTheme();
+  
+  // Protection contre les appels répétés
+  const lastFetchTimeRef = React.useRef(0);
+  const isFetchingRef = React.useRef(false);
 
   useEffect(() => {
     // Récupérer les informations d'entreprise depuis les statistiques du dashboard
@@ -30,6 +34,15 @@ export function SidebarBrand() {
   }, []);
 
   const fetchDashboardStats = async () => {
+    // Éviter les appels trop fréquents (minimum 2 secondes entre les appels)
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < 2000 || isFetchingRef.current) {
+      console.log('🚫 Brand - Appel trop fréquent au dashboard, ignoré');
+      return;
+    }
+    
+    lastFetchTimeRef.current = now;
+    isFetchingRef.current = true;
     try {
       console.log('Brand - Fetching dashboard statistics...');
       const response = await fetch(`http://localhost:3001/api/dashboard/statistiques?t=${Date.now()}`, {
@@ -63,6 +76,8 @@ export function SidebarBrand() {
     } catch (error) {
       console.error('Brand - Error fetching dashboard stats:', error);
       setEntrepriseInfo(null);
+    } finally {
+      isFetchingRef.current = false;
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useRef, useCallback } from 'react';
 
 const CompanyThemeContext = createContext();
 
@@ -14,8 +14,22 @@ export const CompanyThemeProvider = ({ children }) => {
   const [companyColor, setCompanyColor] = useState('#4318FF'); // Couleur par défaut
   const [companyColors, setCompanyColors] = useState({ primary: '#4318FF' });
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Protection contre les appels répétés
+  const lastLoadTimeRef = useRef(0);
+  const isLoadingRef = useRef(false);
 
-  const loadCompanyTheme = async () => {
+  const loadCompanyTheme = useCallback(async () => {
+    // Éviter les appels trop fréquents (minimum 3 secondes entre les appels)
+    const now = Date.now();
+    if (now - lastLoadTimeRef.current < 3000 || isLoadingRef.current) {
+      console.log('🚫 Appel trop fréquent au thème de l\'entreprise, ignoré');
+      return;
+    }
+    
+    lastLoadTimeRef.current = now;
+    isLoadingRef.current = true;
+    
     try {
       setIsLoading(true);
       const response = await fetch(`http://localhost:3001/api/dashboard/statistiques?t=${Date.now()}`, {
@@ -44,8 +58,9 @@ export const CompanyThemeProvider = ({ children }) => {
       console.error('Erreur lors du chargement du thème:', error);
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadCompanyTheme();
@@ -62,7 +77,7 @@ export const CompanyThemeProvider = ({ children }) => {
       window.removeEventListener('companyThemeUpdated', handleThemeUpdate);
       window.removeEventListener('companyLogoUpdated', handleThemeUpdate);
     };
-  }, []);
+  }, [loadCompanyTheme]);
 
   const updateCompanyColor = (newColor) => {
     setCompanyColor(newColor);

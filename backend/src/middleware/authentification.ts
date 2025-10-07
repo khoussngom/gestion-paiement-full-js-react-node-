@@ -54,7 +54,10 @@ export const middlewareAuthentification = (req: Request, res: Response, next: Ne
       if (targetEntrepriseId) {
         utilisateur.isSuperAdminAccess = true;
         utilisateur.targetEntrepriseId = targetEntrepriseId;
-        console.log('🔧 SuperAdmin accès entreprise détecté - ID cible:', targetEntrepriseId);
+        utilisateur.originalRole = payload.role; // Sauvegarder le rôle original
+        utilisateur.role = RoleUtilisateur.ADMIN_ENTREPRISE; // Changer temporairement le rôle
+        utilisateur.entrepriseId = targetEntrepriseId; // Définir l'entreprise temporaire
+        console.log('🔧 SuperAdmin accès entreprise détecté - ID cible:', targetEntrepriseId, '- Rôle temporaire: ADMIN_ENTREPRISE');
       }
     }
 
@@ -97,15 +100,17 @@ export const middlewareEntreprise = (req: Request, res: Response, next: NextFunc
     });
   }
 
-  // Super-admin peut accéder à toutes les entreprises
-  if (req.utilisateur.role === RoleUtilisateur.SUPER_ADMIN) {
+  const utilisateur = (req as any).utilisateur;
+
+  // Super-admin avec accès original peut accéder à toutes les entreprises
+  if (utilisateur.originalRole === RoleUtilisateur.SUPER_ADMIN && !utilisateur.isSuperAdminAccess) {
     return next();
   }
 
   // Vérifier si l'utilisateur appartient à l'entreprise
   const entrepriseId = req.params.entrepriseId || req.body.entrepriseId || req.query.entrepriseId;
   
-  if (entrepriseId && req.utilisateur.entrepriseId !== entrepriseId) {
+  if (entrepriseId && utilisateur.entrepriseId !== entrepriseId) {
     return res.status(403).json({
       succes: false,
       message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
@@ -137,7 +142,30 @@ export const middlewarePaiement = (req: Request, res: Response, next: NextFuncti
 };
 
 // Middleware pour les permissions d'administration
-export const middlewareAdmin = middlewareRole([RoleUtilisateur.ADMIN_ENTREPRISE, RoleUtilisateur.SUPER_ADMIN]);
+export const middlewareAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.utilisateur) {
+    return res.status(401).json({
+      succes: false,
+      message: MESSAGES_ERREUR.TOKEN_INVALIDE
+    });
+  }
+
+  const utilisateur = (req as any).utilisateur;
+  const rolesAutorises = [RoleUtilisateur.ADMIN_ENTREPRISE, RoleUtilisateur.SUPER_ADMIN];
+
+  // Accepter le rôle actuel (qui peut être temporairement changé) ou le rôle original
+  const roleActuel = utilisateur.role;
+  const roleOriginal = utilisateur.originalRole;
+
+  if (!rolesAutorises.includes(roleActuel) && !rolesAutorises.includes(roleOriginal)) {
+    return res.status(403).json({
+      succes: false,
+      message: MESSAGES_ERREUR.PERMISSION_INSUFFISANTE
+    });
+  }
+
+  next();
+};
 
 // Middleware pour les super-administrateurs uniquement
 export const middlewareSuperAdmin = middlewareRole([RoleUtilisateur.SUPER_ADMIN]);

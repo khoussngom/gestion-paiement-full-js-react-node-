@@ -14,7 +14,8 @@ import {
   AlertIcon,
   Badge,
   Divider,
-  Icon
+  Icon,
+  Tooltip
 } from '@chakra-ui/react';
 import { MdPerson, MdWork, MdAttachMoney, MdTrendingUp, MdDownload, MdAssessment, MdArrowBack, MdBusiness, MdAccessTime } from 'react-icons/md';
 import PaymentModeChart from 'components/charts/PaymentModeChart';
@@ -31,7 +32,7 @@ export default function PayrollDashboard() {
   const toast = useToast();
   const navigate = useNavigate();
   const { entrepriseId } = useParams();
-  const { currentEntreprise, isEnterpriseMode, exitEnterpriseMode } = useEnterprise();
+  const { currentEntreprise, isEnterpriseMode, exitEnterpriseMode, hasPermission } = useEnterprise();
   
   const cardShadow = useColorModeValue('0px 18px 40px rgba(112, 144, 176, 0.12)', 'unset');
 
@@ -426,36 +427,57 @@ export default function PayrollDashboard() {
             Actions Rapides
           </Text>
           <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
-            <Button
-              colorScheme="brand"
-              onClick={() => navigate(isEnterpriseContext ? 
-                `/admin/entreprise/${targetEnterpriseId}/employees` : 
-                '/admin/employees'
-              )}
-              leftIcon={<MdPerson />}
+            <Tooltip 
+              label={!isEnterpriseMode || hasPermission('manage_employees') ? '' : 'Accès non autorisé pour cette fonctionnalité'}
+              isDisabled={!isEnterpriseMode || hasPermission('manage_employees')}
             >
-              Gérer les Employés
-            </Button>
-            <Button
-              colorScheme="orange"
-              onClick={() => navigate(isEnterpriseContext ? 
-                `/admin/entreprise/${targetEnterpriseId}/payroll-cycles` : 
-                '/admin/payroll-cycles'
-              )}
-              leftIcon={<MdWork />}
+              <Button
+                colorScheme="brand"
+                onClick={() => navigate(isEnterpriseContext ? 
+                  `/admin/entreprise/${targetEnterpriseId}/employees` : 
+                  '/admin/employees'
+                )}
+                leftIcon={<MdPerson />}
+                isDisabled={isEnterpriseMode && !hasPermission('manage_employees')}
+                opacity={isEnterpriseMode && !hasPermission('manage_employees') ? 0.5 : 1}
+              >
+                Gérer les Employés
+              </Button>
+            </Tooltip>
+            <Tooltip 
+              label={!isEnterpriseMode || hasPermission('manage_payroll') ? '' : 'Accès non autorisé pour cette fonctionnalité'}
+              isDisabled={!isEnterpriseMode || hasPermission('manage_payroll')}
             >
-              Cycles de Paie
-            </Button>
-            <Button
-              colorScheme="green"
-              onClick={() => navigate(isEnterpriseContext ? 
-                `/admin/entreprise/${targetEnterpriseId}/payments` : 
-                '/admin/payments'
-              )}
-              leftIcon={<MdAttachMoney />}
+              <Button
+                colorScheme="orange"
+                onClick={() => navigate(isEnterpriseContext ? 
+                  `/admin/entreprise/${targetEnterpriseId}/payroll-cycles` : 
+                  '/admin/payroll-cycles'
+                )}
+                leftIcon={<MdWork />}
+                isDisabled={isEnterpriseMode && !hasPermission('manage_payroll')}
+                opacity={isEnterpriseMode && !hasPermission('manage_payroll') ? 0.5 : 1}
+              >
+                Cycles de Paie
+              </Button>
+            </Tooltip>
+            <Tooltip 
+              label={!isEnterpriseMode || hasPermission('manage_payroll') ? '' : 'Accès non autorisé pour cette fonctionnalité'}
+              isDisabled={!isEnterpriseMode || hasPermission('manage_payroll')}
             >
-              Paiements
-            </Button>
+              <Button
+                colorScheme="green"
+                onClick={() => navigate(isEnterpriseContext ? 
+                  `/admin/entreprise/${targetEnterpriseId}/payments` : 
+                  '/admin/payments'
+                )}
+                leftIcon={<MdAttachMoney />}
+                isDisabled={isEnterpriseMode && !hasPermission('manage_payroll')}
+                opacity={isEnterpriseMode && !hasPermission('manage_payroll') ? 0.5 : 1}
+              >
+                Paiements
+              </Button>
+            </Tooltip>
           </SimpleGrid>
         </CardBody>
       </Card>

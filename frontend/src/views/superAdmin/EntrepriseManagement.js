@@ -373,35 +373,78 @@ const EntrepriseManagement = () => {
     navigate(`/admin/entreprise/${entreprise.id}/dashboard`);
   };
 
-  const handleAccessInterface = (entreprise) => {
+  const handleAccessInterface = async (entreprise) => {
     console.log('🏢 [ENTERPRISE ACCESS] Accès à l\'entreprise:', entreprise);
     
-    // Utiliser le contexte Enterprise pour entrer en mode entreprise
-    const enterpriseData = {
-      id: entreprise.id,
-      nom: entreprise.nom,
-      // Pour l'accès direct du super admin, on simule une autorisation complète
-      autorisation: {
-        roleAccorde: 'ADMIN',
-        dateExpiration: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
-        tempsRestant: '24 heures'
+    try {
+      // Vérifier d'abord si le super admin a une autorisation valide pour cette entreprise
+      const autorisationResponse = await fetch(`http://localhost:3001/api/autorisations/verification/${entreprise.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+
+      const autorisationResult = await autorisationResponse.json();
+      
+      let autorisation;
+      
+      if (!autorisationResult.succes || !autorisationResult.donnees.aAcces) {
+        // Pour les besoins de test, donner un accès minimal par défaut aux super admins
+        console.log('⚠️ [ENTERPRISE ACCESS] Pas d\'autorisation trouvée, accès minimal accordé pour test');
+        autorisation = {
+          roleAccorde: 'EMPLOYE', // Accès minimal (lecture seule)
+          dateExpiration: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+          tempsRestant: '24 heures (accès test)'
+        };
+        
+        toast({
+          title: 'Accès test accordé',
+          description: 'Accès minimal accordé pour test (lecture seule). Demandez une autorisation complète à l\'admin.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        // Utiliser l'autorisation réelle de la base de données
+        autorisation = autorisationResult.donnees.autorisation;
       }
-    };
-    
-    console.log('✅ [ENTERPRISE ACCESS] Données d\'entreprise:', enterpriseData);
-    enterEnterpriseMode(enterpriseData);
-    
-    // Message de confirmation
-    toast({
-      title: 'Accès accordé',
-      description: `Vous accédez maintenant à l'interface de ${entreprise.nom}`,
-      status: 'info',
-      duration: 4000,
-      isClosable: true,
-    });
-    
-    // Rediriger vers le dashboard admin de l'entreprise
-    navigate('/admin/dashboard');
+      const enterpriseData = {
+        id: entreprise.id,
+        nom: entreprise.nom,
+        autorisation: {
+          roleAccorde: autorisation.roleAccorde || 'EMPLOYE', // Par défaut, accès minimal
+          dateExpiration: new Date(autorisation.dateExpiration),
+          tempsRestant: autorisation.tempsRestant
+        }
+      };
+      
+      console.log('✅ [ENTERPRISE ACCESS] Données d\'entreprise:', enterpriseData);
+      enterEnterpriseMode(enterpriseData);
+      
+      // Message de confirmation
+      toast({
+        title: 'Accès accordé',
+        description: `Vous accédez maintenant à l'interface de ${entreprise.nom} avec le rôle: ${autorisation.roleAccorde || 'EMPLOYE'}`,
+        status: 'info',
+        duration: 4000,
+        isClosable: true,
+      });
+      
+      // Rediriger vers le dashboard admin de l'entreprise
+      navigate('/admin/dashboard');
+      
+    } catch (error) {
+      console.error('❌ [ENTERPRISE ACCESS] Erreur:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la vérification des autorisations',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const openCreateModal = () => {

@@ -16,14 +16,14 @@ export function obtenirEntrepriseId(req: Request): string | null {
     return null;
   }
 
-  // Pour les super administrateurs, utiliser l'entreprise cible si spécifiée
-  if (utilisateur.role === RoleUtilisateur.SUPER_ADMIN && utilisateur.isSuperAdminAccess && utilisateur.targetEntrepriseId) {
-    console.log(`[SuperAdmin] Utilisation de l'entreprise cible: ${utilisateur.targetEntrepriseId}`);
+  // Pour les super administrateurs en mode accès entreprise, utiliser l'entreprise temporaire
+  if (utilisateur.originalRole === RoleUtilisateur.SUPER_ADMIN && utilisateur.isSuperAdminAccess && utilisateur.targetEntrepriseId) {
+    console.log(`[SuperAdmin temporaire] Utilisation de l'entreprise cible: ${utilisateur.targetEntrepriseId}`);
     return utilisateur.targetEntrepriseId;
   }
   
-  // Pour tous les autres utilisateurs ou super admin sans entreprise cible
+  // Pour tous les autres utilisateurs
   const entrepriseId = utilisateur.entrepriseId;
-  console.log(`[User] Utilisation de l'entreprise de l'utilisateur: ${entrepriseId}`);
+  console.log(`[User] Utilisation de l'entreprise de l'utilisateur: ${entrepriseId} - Rôle: ${utilisateur.role}`);
   return entrepriseId || null;
 }
