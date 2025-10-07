@@ -39,14 +39,26 @@ export const middlewareAuthentification = (req: Request, res: Response, next: Ne
 
     const payload = jwt.verify(token, process.env.JWT_SECRET || 'secret-key') as any;
     
-    req.utilisateur = {
+    const utilisateur: any = {
       id: payload.id,
+      nom: payload.nom,
+      prenom: payload.prenom,
       email: payload.email,
       role: payload.role,
       entrepriseId: payload.entrepriseId
     };
 
-    next();
+    // Gestion du contexte SuperAdmin avec accès entreprise
+    if (payload.role === 'SUPER_ADMIN') {
+      const targetEntrepriseId = req.headers['x-entreprise-id'] as string;
+      if (targetEntrepriseId) {
+        utilisateur.isSuperAdminAccess = true;
+        utilisateur.targetEntrepriseId = targetEntrepriseId;
+        console.log('🔧 SuperAdmin accès entreprise détecté - ID cible:', targetEntrepriseId);
+      }
+    }
+
+    (req as any).utilisateur = utilisateur;    next();
   } catch (error) {
     return res.status(401).json({
       succes: false,

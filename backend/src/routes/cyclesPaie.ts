@@ -4,6 +4,7 @@ import { ServiceCyclePaie } from '@/services/ServiceCyclePaie';
 import { schemaCreerCyclePaie, schemaModifierCyclePaie } from '@/validators';
 import { StatutBulletinPaie, TypeCyclePaie } from '@/enums';
 import { MESSAGES_SUCCES, MESSAGES_ERREUR } from '@/enums/messages';
+import { obtenirEntrepriseId } from '@/utils/entrepriseHelper';
 
 const routeurCyclesPaie = Router();
 const cyclePaieRepo = new CyclePaieRepository();
@@ -12,7 +13,7 @@ const serviceCyclePaie = new ServiceCyclePaie();
 // GET /cycles-paie - Obtenir tous les cycles de paie
 routeurCyclesPaie.get('/', async (req, res) => {
   try {
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(403).json({
@@ -40,7 +41,7 @@ routeurCyclesPaie.get('/', async (req, res) => {
 routeurCyclesPaie.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     const resultat = await serviceCyclePaie.obtenirCycleAvecEmployes(id);
     
@@ -74,7 +75,7 @@ routeurCyclesPaie.get('/:id', async (req, res) => {
 // POST /cycles-paie - Créer un nouveau cycle de paie
 routeurCyclesPaie.post('/', async (req, res) => {
   try {
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(403).json({
@@ -124,7 +125,7 @@ routeurCyclesPaie.post('/', async (req, res) => {
 routeurCyclesPaie.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
 
     // Validation des données
     const donneesValidees = schemaModifierCyclePaie.parse(req.body);
@@ -170,7 +171,7 @@ routeurCyclesPaie.put('/:id', async (req, res) => {
 routeurCyclesPaie.post('/:id/approuver', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
 
     const cycle = await serviceCyclePaie.approuverCycle(id);
 
@@ -205,7 +206,7 @@ routeurCyclesPaie.post('/:id/approuver', async (req, res) => {
 routeurCyclesPaie.post('/:id/cloturer', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
 
     const cycle = await serviceCyclePaie.cloturerCycle(id);
 
@@ -313,7 +314,7 @@ routeurCyclesPaie.post('/bulletins/:bulletinId/payer', async (req, res) => {
 routeurCyclesPaie.get('/:id/statistiques', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
 
     // Vérifier que le cycle appartient à l'entreprise
     const cycle = await cyclePaieRepo.getById(id);
@@ -342,7 +343,7 @@ routeurCyclesPaie.get('/:id/statistiques', async (req, res) => {
 // GET /cycles-paie/employes-non-payes - Obtenir les employés non payés des cycles actifs
 routeurCyclesPaie.get('/employes-non-payes', async (req, res) => {
   try {
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
 
     if (!entrepriseId) {
       return res.status(400).json({

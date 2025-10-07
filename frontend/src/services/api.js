@@ -9,6 +9,31 @@ const api = axios.create({
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('authToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  
+  // Ajouter l'entreprise cible pour les super admins en mode accès entreprise
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  console.log('🔍 [API INTERCEPTOR] User dans localStorage:', {
+    role: user.role,
+    isSuperAdminAccess: user.isSuperAdminAccess,
+    entrepriseId: user.entrepriseId,
+    entrepriseNom: user.entrepriseNom
+  });
+  
+  // Vérifier si c'est un super admin en mode accès entreprise (peut avoir role ADMIN temporairement)
+  if (user.isSuperAdminAccess && user.entrepriseId) {
+    console.log('✅ [API INTERCEPTOR] SuperAdmin en mode entreprise - Ajout header x-entreprise-id:', user.entrepriseId);
+    config.headers['x-entreprise-id'] = user.entrepriseId;
+  } else if (user.role === 'SUPER_ADMIN') {
+    console.log('🔶 [API INTERCEPTOR] SuperAdmin normal (pas en mode entreprise)');
+  } else {
+    console.log('❌ [API INTERCEPTOR] Utilisateur normal ou conditions non remplies:', {
+      isSuperAdminAccess: user.isSuperAdminAccess,
+      entrepriseId: user.entrepriseId,
+      role: user.role
+    });
+  }
+  
   return config;
 });
 

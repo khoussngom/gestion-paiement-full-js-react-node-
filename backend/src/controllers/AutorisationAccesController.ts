@@ -28,15 +28,30 @@ export class AutorisationAccesController {
   async accorderAcces(req: Request, res: Response) {
     try {
       console.log('🔐 [AUTORISATION] Demande d\'accès reçue:', req.body);
+      console.log('👤 [AUTORISATION] Utilisateur connecté:', {
+        id: (req as any).utilisateur?.id,
+        role: (req as any).utilisateur?.role,
+        entrepriseId: (req as any).utilisateur?.entrepriseId,
+        email: (req as any).utilisateur?.email
+      });
 
       const { dureeHeures, raisonAcces } = req.body;
       const utilisateur = (req as any).utilisateur;
 
       // Vérifier que l'utilisateur est bien admin d'entreprise
       if (utilisateur.role !== RoleUtilisateur.ADMIN_ENTREPRISE) {
+        console.log('❌ [AUTORISATION] Rôle invalide:', utilisateur.role, 'Expected:', RoleUtilisateur.ADMIN_ENTREPRISE);
         return res.status(StatusCodes.FORBIDDEN).json({
           succes: false,
-          message: 'Seuls les admins d\'entreprise peuvent accorder des accès'
+          message: `Seuls les admins d'entreprise peuvent accorder des accès. Rôle actuel: ${utilisateur.role}`
+        });
+      }
+
+      if (!utilisateur.entrepriseId) {
+        console.log('❌ [AUTORISATION] Aucune entrepriseId pour l\'utilisateur');
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          succes: false,
+          message: 'Utilisateur non associé à une entreprise'
         });
       }
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { EmployeRepository } from '@/repositories/EmployeRepository';
 import { schemaCreerEmploye, schemaModifierEmploye, schemaFiltresEmploye } from '@/validators';
 import { MESSAGES_SUCCES, MESSAGES_ERREUR } from '@/enums/messages';
+import { obtenirEntrepriseId } from '@/utils/entrepriseHelper';
 
 const routeurEmployes = Router();
 const employeRepo = new EmployeRepository();
@@ -10,7 +11,7 @@ const employeRepo = new EmployeRepository();
 routeurEmployes.get('/', async (req, res) => {
   try {
     const filtres = schemaFiltresEmploye.parse(req.query);
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(403).json({
@@ -39,7 +40,7 @@ routeurEmployes.get('/', async (req, res) => {
 routeurEmployes.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     const employe = await employeRepo.getById(id);
     
@@ -74,11 +75,7 @@ routeurEmployes.get('/:id', async (req, res) => {
 // POST /employes - Créer un nouvel employé
 routeurEmployes.post('/', async (req, res) => {
   try {
-    const entrepriseId = req.utilisateur?.entrepriseId;
-    const donneesValidees = schemaCreerEmploye.parse({
-      ...req.body,
-      entrepriseId
-    });
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(403).json({
@@ -86,6 +83,11 @@ routeurEmployes.post('/', async (req, res) => {
         message: MESSAGES_ERREUR.ENTREPRISE_NON_AUTORISEE
       });
     }
+
+    const donneesValidees = schemaCreerEmploye.parse({
+      ...req.body,
+      entrepriseId
+    });
 
     // S'assurer que l'employé est créé pour la bonne entreprise
     const nouvelEmploye = await employeRepo.create({
@@ -112,7 +114,7 @@ routeurEmployes.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const donneesValidees = schemaModifierEmploye.parse(req.body);
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     const employe = await employeRepo.getById(id);
     
@@ -151,7 +153,7 @@ routeurEmployes.put('/:id', async (req, res) => {
 routeurEmployes.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     const employe = await employeRepo.getById(id);
     
@@ -189,7 +191,7 @@ routeurEmployes.delete('/:id', async (req, res) => {
 routeurEmployes.patch('/:id/activer', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     const employe = await employeRepo.getById(id);
     
@@ -228,7 +230,7 @@ routeurEmployes.patch('/:id/activer', async (req, res) => {
 routeurEmployes.patch('/:id/desactiver', async (req, res) => {
   try {
     const { id } = req.params;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     const employe = await employeRepo.getById(id);
     
@@ -266,7 +268,7 @@ routeurEmployes.patch('/:id/desactiver', async (req, res) => {
 // GET /employes/statistiques - Obtenir les statistiques des employés
 routeurEmployes.get('/statistiques', async (req, res) => {
   try {
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(403).json({
@@ -303,7 +305,7 @@ routeurEmployes.get('/statistiques', async (req, res) => {
 routeurEmployes.post('/import', async (req, res) => {
   try {
     const { employes } = req.body;
-    const entrepriseId = req.utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(403).json({

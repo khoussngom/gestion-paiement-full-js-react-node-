@@ -41,6 +41,7 @@ import {
 import { MdAdd, MdMoreVert, MdEdit, MdDelete, MdVisibility, MdBusiness } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import ColorPicker from '../../components/colorPicker/ColorPicker';
+import { useEnterprise } from '../../contexts/EnterpriseContext';
 
 const EntrepriseManagement = () => {
   const [entreprises, setEntreprises] = useState([]);
@@ -51,6 +52,7 @@ const EntrepriseManagement = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const { enterEnterpriseMode } = useEnterprise();
   const [formData, setFormData] = useState({
     nom: '',
     adresse: '',
@@ -372,22 +374,22 @@ const EntrepriseManagement = () => {
   };
 
   const handleAccessInterface = (entreprise) => {
-    // Permettre au super admin d'accéder à l'interface d'administration de l'entreprise
-    // On va stocker temporairement l'ID de l'entreprise pour simuler la connexion
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    console.log('🏢 [ENTERPRISE ACCESS] Accès à l\'entreprise:', entreprise);
     
-    // Créer un utilisateur temporaire pour l'entreprise
-    const tempUser = {
-      ...currentUser,
-      entrepriseId: entreprise.id,
-      entrepriseNom: entreprise.nom,
-      isSuperAdminAccess: true, // Flag pour identifier l'accès super admin
-      originalRole: currentUser.role,
-      role: 'ADMIN_ENTREPRISE' // Temporairement admin de l'entreprise
+    // Utiliser le contexte Enterprise pour entrer en mode entreprise
+    const enterpriseData = {
+      id: entreprise.id,
+      nom: entreprise.nom,
+      // Pour l'accès direct du super admin, on simule une autorisation complète
+      autorisation: {
+        roleAccorde: 'ADMIN',
+        dateExpiration: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+        tempsRestant: '24 heures'
+      }
     };
     
-    // Sauvegarder l'utilisateur temporaire
-    localStorage.setItem('user', JSON.stringify(tempUser));
+    console.log('✅ [ENTERPRISE ACCESS] Données d\'entreprise:', enterpriseData);
+    enterEnterpriseMode(enterpriseData);
     
     // Message de confirmation
     toast({

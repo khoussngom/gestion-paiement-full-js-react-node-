@@ -7,27 +7,62 @@ const routeurDashboard = Router();
 const serviceDashboard = new ServiceDashboard();
 const prisma = new PrismaClient();
 
+/**
+ * Utilitaire pour récupérer l'ID d'entreprise correct selon le contexte
+ * Gère les cas : admin d'entreprise normal, super admin avec accès entreprise
+ */
+function obtenirEntrepriseId(req: any): string | null {
+  const utilisateur = req.utilisateur;
+  
+  // Si c'est un SuperAdmin avec un accès entreprise spécifique
+  if (utilisateur?.role === 'SUPER_ADMIN' && utilisateur?.isSuperAdminAccess && utilisateur?.targetEntrepriseId) {
+    console.log('🔧 SuperAdmin accès entreprise - ID cible:', utilisateur.targetEntrepriseId);
+    return utilisateur.targetEntrepriseId;
+  }
+  
+  // Pour les admins d'entreprise normaux
+  if (utilisateur?.entrepriseId) {
+    console.log('🔧 Admin entreprise normal - ID:', utilisateur.entrepriseId);
+    return utilisateur.entrepriseId;
+  }
+  
+  console.log('🔧 Aucune entreprise trouvée dans le contexte');
+  return null;
+}
+
 // GET /dashboard/statistiques - Obtenir toutes les statistiques complètes  
 routeurDashboard.get('/statistiques', async (req, res) => {
   try {
-    // Récupérer l'ID de l'entreprise depuis le contexte d'authentification
-    let entrepriseId = (req as any).utilisateur?.entrepriseId;
+    const utilisateur = (req as any).utilisateur;
+    let entrepriseId = utilisateur?.entrepriseId;
     
-    console.log('🔍 Dashboard statistiques demandées pour entreprise:', entrepriseId);
-    console.log('🔧 [DEBUG] Route dashboard.ts principale utilisée');
+    console.log('🔍 Dashboard statistiques demandées');
+    console.log('🔧 Utilisateur:', {
+      id: utilisateur?.id,
+      role: utilisateur?.role,
+      entrepriseId: utilisateur?.entrepriseId,
+      isSuperAdminAccess: utilisateur?.isSuperAdminAccess
+    });
     
-    // Pour les tests, utiliser la première entreprise si pas d'auth
+    // Si c'est un SuperAdmin avec un accès entreprise spécifique
+    if (utilisateur?.role === 'SUPER_ADMIN' && utilisateur?.isSuperAdminAccess && utilisateur?.targetEntrepriseId) {
+      entrepriseId = utilisateur.targetEntrepriseId;
+      console.log('🔧 SuperAdmin accès entreprise détecté, utilisation de targetEntrepriseId:', entrepriseId);
+    }
+    
+    // Pour les admins d'entreprise normaux, utiliser leur entrepriseId
+    if (!entrepriseId && utilisateur?.role === 'ADMIN_ENTREPRISE') {
+      entrepriseId = utilisateur.entrepriseId;
+      console.log('🔧 Admin entreprise détecté, entrepriseId:', entrepriseId);
+    }
+    
+    // Pour les tests uniquement, utiliser la première entreprise si pas d'auth
     if (!entrepriseId) {
-      console.log('🔧 Mode test: utilisation de la première entreprise');
-      const premiereEntreprise = await prisma.entreprise.findFirst();
-      if (premiereEntreprise) {
-        entrepriseId = premiereEntreprise.id;
-      } else {
-        return res.status(400).json({
-          succes: false,
-          message: 'Aucune entreprise trouvée'
-        });
-      }
+      console.log('🔧 Aucune entreprise spécifiée');
+      return res.status(400).json({
+        succes: false,
+        message: 'Aucune entreprise spécifiée pour cette requête'
+      });
     }
 
     // Récupérer les données directement avec des requêtes simples
@@ -231,13 +266,13 @@ routeurDashboard.get('/statistiques', async (req, res) => {
 // GET /dashboard/export/employes - Exporter la liste des employés
 routeurDashboard.get('/export/employes', async (req, res) => {
   try {
-    // Récupérer l'ID de l'entreprise depuis le contexte d'authentification
-    const entrepriseId = (req as any).utilisateur?.entrepriseId;
+    // Récupérer l'ID de l'entreprise selon le contexte
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(400).json({
         succes: false,
-        message: 'ID entreprise manquant'
+        message: 'Aucune entreprise spécifiée pour cette requête'
       });
     }
 
@@ -261,13 +296,13 @@ routeurDashboard.get('/export/employes', async (req, res) => {
 // GET /dashboard/rapport/mensuel - Générer un rapport mensuel
 routeurDashboard.get('/rapport/mensuel', async (req, res) => {
   try {
-    // Récupérer l'ID de l'entreprise depuis le contexte d'authentification
-    const entrepriseId = (req as any).utilisateur?.entrepriseId;
+    // Récupérer l'ID de l'entreprise selon le contexte
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(400).json({
         succes: false,
-        message: 'ID entreprise manquant'
+        message: 'Aucune entreprise spécifiée pour cette requête'
       });
     }
 
@@ -313,12 +348,12 @@ routeurDashboard.get('/rapport/mensuel', async (req, res) => {
 // GET /dashboard/graphiques/employes-par-poste - Données pour le graphique des employés par poste
 routeurDashboard.get('/graphiques/employes-par-poste', async (req, res) => {
   try {
-    const entrepriseId = (req as any).utilisateur?.entrepriseId;
+    const entrepriseId = obtenirEntrepriseId(req);
     
     if (!entrepriseId) {
       return res.status(400).json({
         succes: false,
-        message: 'ID entreprise manquant'
+        message: 'Aucune entreprise spécifiée pour cette requête'
       });
     }
 

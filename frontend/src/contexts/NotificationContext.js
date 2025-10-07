@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import autorisationService from '../services/autorisationService';
 
 const NotificationContext = createContext();
@@ -16,56 +16,102 @@ export const NotificationProvider = ({ children }) => {
   const [autorisationsActives, setAutorisationsActives] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Utiliser useRef pour éviter les dépendances infinies
+  const autorisationsActivesRef = useRef([]);
+  const isMountedRef = useRef(true);
+  const lastCheckTimeRef = useRef(0);
+
+  // Fonction callback stable pour vérifier les autorisations
+  const checkNewAuthorizations = useCallback(async () => {
+    // Éviter les appels trop fréquents (minimum 5 secondes entre les appels)
+    const now = Date.now();
+    if (now - lastCheckTimeRef.current < 5000) {
+      console.log('🚫 Appel trop fréquent aux autorisations, ignoré');
+      return;
+    }
+    lastCheckTimeRef.current = now;
+
+    // Vérifier si le composant est toujours monté
+    if (!isMountedRef.current) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      console.log('🔍 Vérification des autorisations...');
+      const result = await autorisationService.obtenirMesAutorisations();
+      
+      // Vérifier à nouveau si le composant est monté après la requête async
+      if (!isMountedRef.current) {
+        return;
+      }
+      
+      if (result.succes && result.donnees) {
+        const nouvellesAutorisations = result.donnees;
+        const currentAutorisations = autorisationsActivesRef.current;
+        
+        // Vérifier s'il y a de nouvelles autorisations
+        const nouvellesNotifications = nouvellesAutorisations
+          .filter(auth => auth.estValide && !currentAutorisations.some(existing => existing.id === auth.id))
+          .map(auth => ({
+            id: auth.id,
+            type: 'nouvelle_autorisation',
+            entrepriseId: auth.entrepriseId,
+            entrepriseNom: auth.entreprise?.nom,
+            adminNom: `${auth.admin?.prenom} ${auth.admin?.nom}`,
+            dateCreation: new Date(auth.dateCreation),
+            dateExpiration: new Date(auth.dateExpiration),
+            tempsRestant: auth.tempsRestant,
+            raisonAcces: auth.raisonAcces,
+            lu: false,
+            autorisation: auth
+          }));
+
+        if (nouvellesNotifications.length > 0) {
+          console.log(`🆕 ${nouvellesNotifications.length} nouvelles autorisations trouvées`);
+          setNotifications(prev => [...nouvellesNotifications, ...prev]);
+          setUnreadCount(prev => prev + nouvellesNotifications.length);
+        }
+
+        // Mettre à jour les autorisations actives dans la ref et le state
+        autorisationsActivesRef.current = nouvellesAutorisations;
+        setAutorisationsActives(nouvellesAutorisations);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification des autorisations:', error);
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
 
   // Simuler le polling pour les nouvelles autorisations
   useEffect(() => {
-    const checkNewAuthorizations = async () => {
-      try {
-        setIsLoading(true);
-        const result = await autorisationService.obtenirMesAutorisations();
-        
-        if (result.succes && result.donnees) {
-          const nouvellesAutorisations = result.donnees;
-          
-          // Vérifier s'il y a de nouvelles autorisations
-          const nouvellesNotifications = nouvellesAutorisations
-            .filter(auth => auth.estValide && !autorisationsActives.some(existing => existing.id === auth.id))
-            .map(auth => ({
-              id: auth.id,
-              type: 'nouvelle_autorisation',
-              entrepriseId: auth.entrepriseId,
-              entrepriseNom: auth.entreprise?.nom,
-              adminNom: `${auth.admin?.prenom} ${auth.admin?.nom}`,
-              dateCreation: new Date(auth.dateCreation),
-              dateExpiration: new Date(auth.dateExpiration),
-              tempsRestant: auth.tempsRestant,
-              raisonAcces: auth.raisonAcces,
-              lu: false,
-              autorisation: auth
-            }));
-
-          if (nouvellesNotifications.length > 0) {
-            setNotifications(prev => [...nouvellesNotifications, ...prev]);
-            setUnreadCount(prev => prev + nouvellesNotifications.length);
-          }
-
-          setAutorisationsActives(nouvellesAutorisations);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification des autorisations:', error);
-      } finally {
-        setIsLoading(false);
+    isMountedRef.current = true;
+    
+    // Vérification initiale avec un petit délai pour éviter les problèmes de timing
+    const initialTimeout = setTimeout(() => {
+      if (isMountedRef.current) {
+        checkNewAuthorizations();
       }
-    };
-
-    // Vérification initiale
-    checkNewAuthorizations();
+    }, 1000);
 
     // Polling toutes les 30 secondes
-    const interval = setInterval(checkNewAuthorizations, 30000);
+    const interval = setInterval(() => {
+      if (isMountedRef.current) {
+        checkNewAuthorizations();
+      }
+    }, 30000);
 
-    return () => clearInterval(interval);
-  }, [autorisationsActives]);
+    return () => {
+      isMountedRef.current = false;
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+      console.log('🧹 NotificationProvider cleanup effectué');
+    };
+  }, [checkNewAuthorizations]);
 
   const markAsRead = (notificationId) => {
     setNotifications(prev => 

@@ -39,10 +39,24 @@ export default function PayrollDashboard() {
   const isEnterpriseContext = entrepriseId || isEnterpriseMode;
   const targetEnterpriseId = entrepriseId || currentEntreprise?.id;
 
+  console.log('🔍 [DASHBOARD DEBUG] Contexte:', {
+    entrepriseId,
+    isEnterpriseMode,
+    currentEntreprise: currentEntreprise?.id,
+    isEnterpriseContext,
+    targetEnterpriseId
+  });
+
   const loadStatistics = useCallback(async () => {
     try {
       setLoading(true);
       let response;
+      
+      console.log('🔍 [LOAD STATS] Conditions:', {
+        isEnterpriseContext,
+        targetEnterpriseId,
+        willUseEnterpriseRoute: isEnterpriseContext && targetEnterpriseId
+      });
       
       if (isEnterpriseContext && targetEnterpriseId) {
         console.log('🏢 Chargement stats pour entreprise:', targetEnterpriseId);

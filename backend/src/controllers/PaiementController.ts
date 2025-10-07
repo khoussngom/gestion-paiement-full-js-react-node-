@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PaiementService } from '../services/PaiementService';
 import { schemaCreerPaiement } from '../validators';
 import { MESSAGES_SUCCES, MESSAGES_ERREUR } from '../enums/messages';
+import { obtenirEntrepriseId } from '../utils/entrepriseHelper';
 
 export class PaiementController {
     private paiementService: PaiementService;
@@ -12,7 +13,7 @@ export class PaiementController {
 
     async obtenirTous(req: Request, res: Response) {
         try {
-        const entrepriseId = req.utilisateur?.entrepriseId;
+        const entrepriseId = obtenirEntrepriseId(req);
         
         if (!entrepriseId) {
             return res.status(403).json({
@@ -38,7 +39,7 @@ export class PaiementController {
 
     async obtenirStatistiques(req: Request, res: Response) {
         try {
-        const entrepriseId = req.utilisateur?.entrepriseId;
+        const entrepriseId = obtenirEntrepriseId(req);
         
         if (!entrepriseId) {
             return res.status(403).json({
@@ -66,8 +67,8 @@ export class PaiementController {
 
     async creer(req: Request, res: Response) {
         try {
-        const entrepriseId = req.utilisateur?.entrepriseId;
-        const utilisateurId = req.utilisateur?.id;
+        const entrepriseId = obtenirEntrepriseId(req);
+        const utilisateurId = (req as any).utilisateur?.id;
         
         if (!entrepriseId || !utilisateurId) {
             return res.status(403).json({
@@ -107,7 +108,7 @@ export class PaiementController {
 
     async exporterCSV(req: Request, res: Response) {
         try {
-        const entrepriseId = req.utilisateur?.entrepriseId;
+        const entrepriseId = obtenirEntrepriseId(req);
         
         if (!entrepriseId) {
             return res.status(403).json({
@@ -133,7 +134,7 @@ export class PaiementController {
 
     async genererRapport(req: Request, res: Response) {
         try {
-        const entrepriseId = req.utilisateur?.entrepriseId;
+        const entrepriseId = obtenirEntrepriseId(req);
         
         if (!entrepriseId) {
             return res.status(403).json({

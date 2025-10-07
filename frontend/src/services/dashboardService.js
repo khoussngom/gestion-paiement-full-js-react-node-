@@ -3,13 +3,17 @@ import api from './api';
 const dashboardService = {
   // Récupérer les statistiques générales (utilisateur connecté)
   async getStatistics() {
+    console.log('📊 [API] Appel route générale: /dashboard/statistiques');
     const response = await api.get('/dashboard/statistiques');
+    console.log('📊 [API] Réponse route générale:', response.data);
     return response.data;
   },
 
   // Récupérer les statistiques d'une entreprise spécifique (SuperAdmin)
   async getStatisticsForEnterprise(entrepriseId) {
+    console.log('🏢 [API] Appel route spécifique:', `/dashboard/statistiques/${entrepriseId}`);
     const response = await api.get(`/dashboard/statistiques/${entrepriseId}`);
+    console.log('🏢 [API] Réponse route spécifique:', response.data);
     return response.data;
   },
 
