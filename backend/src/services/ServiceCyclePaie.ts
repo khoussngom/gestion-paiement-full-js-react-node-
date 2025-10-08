@@ -29,15 +29,16 @@ export class ServiceCyclePaie {
       // Validation des dates
       this.validerPeriodeCycle(donneesEntree.dateDebut, donneesEntree.dateFin, donneesEntree.typeCycle);
 
-      // Vérifier les chevauchements de cycles
+      // Vérifier les chevauchements de cycles (uniquement pour le même type de cycle)
       const chevauchement = await this.cyclePaieRepo.checkOverlap(
         donneesEntree.entrepriseId,
         donneesEntree.dateDebut,
-        donneesEntree.dateFin
+        donneesEntree.dateFin,
+        donneesEntree.typeCycle
       );
 
       if (chevauchement) {
-        throw new Error('Un cycle de paie existe déjà pour cette période');
+        throw new Error(`Un cycle de paie ${donneesEntree.typeCycle.toLowerCase()} existe déjà pour cette période (${chevauchement.nom})`);
       }
 
       // Créer le cycle de paie
@@ -139,7 +140,8 @@ export class ServiceCyclePaie {
    * Valide la période d'un cycle selon son type
    */
   private validerPeriodeCycle(dateDebut: Date, dateFin: Date, typeCycle: TypeCyclePaie): void {
-    const dureeEnJours = Math.ceil((dateFin.getTime() - dateDebut.getTime()) / (24 * 60 * 60 * 1000));
+    // Calcul correct incluant le jour de fin (+1)
+    const dureeEnJours = Math.ceil((dateFin.getTime() - dateDebut.getTime()) / (24 * 60 * 60 * 1000)) + 1;
 
     switch (typeCycle) {
       case TypeCyclePaie.MENSUEL:
@@ -148,8 +150,8 @@ export class ServiceCyclePaie {
         }
         break;
       case TypeCyclePaie.HEBDOMADAIRE:
-        if (dureeEnJours < 7 || dureeEnJours > 7) {
-          throw new Error('Un cycle hebdomadaire doit avoir une durée de 7 jours exactement');
+        if (dureeEnJours !== 7) {
+          throw new Error(`Un cycle hebdomadaire doit avoir une durée de 7 jours exactement (durée calculée: ${dureeEnJours})`);
         }
         break;
     }

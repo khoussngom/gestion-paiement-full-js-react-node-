@@ -25,6 +25,9 @@ import SuperAdminDashboard from 'views/superAdmin/SuperAdminDashboard';
 import CompanySettings from 'views/admin/settings/CompanySettings';
 import EnterpriseContextDashboard from 'views/enterprise/EnterpriseContextDashboard';
 
+// Test Components
+import KkiaPayTestComponent from 'components/test/KkiaPayTestComponent';
+
 // Pointage Imports
 import VigileScanner from 'views/vigile/Scanner_Simple';
 import PointageReports from 'views/admin/pointage/Reports';
@@ -138,6 +141,15 @@ const routes = [
     component: <EnterpriseContextDashboard />,
     hideInSidebar: true, // Caché de la sidebar normale
     superAdminOnly: true, // Accessible seulement au super admin avec autorisation
+  },
+  {
+    name: 'Test KkiaPay',
+    layout: '/admin',
+    path: '/test-kkiapay',
+    icon: <Icon as={MdSettings} width="20px" height="20px" color="inherit" />,
+    component: <KkiaPayTestComponent />,
+    hideInSidebar: true,
+    developmentOnly: true,
   },
   {
     name: 'Déconnexion',

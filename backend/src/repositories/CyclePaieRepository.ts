@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { BasePrismaRepository } from './BasePrismaRepository';
 import { CyclePaie } from '@/entities/CyclePaie';
 import { CreerCyclePaieDto } from '@/validators';
-import { StatutCyclePaie } from '@/enums';
+import { StatutCyclePaie, TypeCyclePaie } from '@/enums';
 
 export class CyclePaieRepository extends BasePrismaRepository {
   
@@ -160,10 +160,13 @@ export class CyclePaieRepository extends BasePrismaRepository {
     return cycles.map(c => new CyclePaie(c));
   }
 
-  async checkOverlap(entrepriseId: string, dateDebut: Date, dateFin: Date, excluId?: string): Promise<boolean> {
+  async checkOverlap(entrepriseId: string, dateDebut: Date, dateFin: Date, typeCycle: TypeCyclePaie, excluId?: string): Promise<CyclePaie | null> {
     const cycle = await this.prisma.cyclePaie.findFirst({
       where: {
         entrepriseId,
+        // Vérifier les chevauchements uniquement pour le même type de cycle
+        // Car les cycles mensuels (SALAIRE_FIXE) et hebdomadaires (HONORAIRE) ciblent des employés différents
+        typeCycle,
         ...(excluId && { id: { not: excluId } }),
         OR: [
           {
@@ -175,9 +178,13 @@ export class CyclePaieRepository extends BasePrismaRepository {
             }
           }
         ]
+      },
+      include: {
+        entreprise: true,
+        bulletinsPaie: true
       }
     });
-    return !!cycle;
+    return cycle ? new CyclePaie(cycle) : null;
   }
 
   async countByEntreprise(entrepriseId: string): Promise<number> {

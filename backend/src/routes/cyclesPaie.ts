@@ -22,7 +22,7 @@ routeurCyclesPaie.get('/', async (req, res) => {
       });
     }
 
-    const cycles = await cyclePaieRepo.getByEntreprise(entrepriseId);
+    const cycles = await serviceCyclePaie.listerCyclesPaie(entrepriseId);
     
     res.status(200).json({
       succes: true,

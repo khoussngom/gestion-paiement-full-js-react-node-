@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PaymentMethodModal from 'components/modals/PaymentMethodModal';
 import {
   Box,
   SimpleGrid,
@@ -50,6 +51,10 @@ export default function PayrollCycles() {
   // Modals
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
+  const { isOpen: isPaymentOpen, onOpen: onPaymentOpen, onClose: onPaymentClose } = useDisclosure();
+  
+  // État pour l'employé sélectionné pour paiement
+  const [selectedEmployeeForPayment, setSelectedEmployeeForPayment] = useState(null);
   
   // États pour la création de cycle
   const [newCycle, setNewCycle] = useState({
@@ -273,42 +278,22 @@ export default function PayrollCycles() {
     }
   };
 
-  const handlePayerViaBulletin = async (employe) => {
-    try {
-      // Demander le mode de paiement (simple prompt pour demo)
-      const modePaiement = window.prompt(
-        'Mode de paiement:\n- ESPECES\n- VIREMENT_BANCAIRE\n- ORANGE_MONEY\n- WAVE\n\nEntrez votre choix:',
-        'ESPECES'
-      );
+  const handlePayerViaBulletin = (employe) => {
+    setSelectedEmployeeForPayment(employe);
+    onPaymentOpen();
+  };
 
-      if (!modePaiement) return;
-
-      // Valider le paiement via le bulletin
-      await payrollCycleService.payerBulletin(employe.bulletinId, modePaiement.toUpperCase());
-      
-      toast({
-        title: 'Succès',
-        description: 'Paiement validé avec succès',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-
-      // Recharger les détails du cycle
-      if (selectedCycle?.cycle?.id) {
+  const handlePaymentSuccess = async () => {
+    // Recharger les détails du cycle après un paiement réussi
+    if (selectedCycle?.cycle?.id) {
+      try {
         const response = await payrollCycleService.getCycleWithEmployees(selectedCycle.cycle.id);
         if (response.succes) {
           setSelectedCycle(response.donnees);
         }
+      } catch (error) {
+        console.error('Erreur lors du rechargement du cycle:', error);
       }
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible de valider le paiement',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
     }
   };
 
@@ -985,6 +970,17 @@ export default function PayrollCycles() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Modal de sélection du mode de paiement */}
+      <PaymentMethodModal
+        isOpen={isPaymentOpen}
+        onClose={() => {
+          onPaymentClose();
+          setSelectedEmployeeForPayment(null);
+        }}
+        employee={selectedEmployeeForPayment}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </Box>
   );
 }

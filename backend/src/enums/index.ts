@@ -33,6 +33,7 @@ export enum ModePaiement {
   VIREMENT_BANCAIRE = 'VIREMENT_BANCAIRE',
   ORANGE_MONEY = 'ORANGE_MONEY',
   WAVE = 'WAVE',
+  KKIAPAY = 'KKIAPAY',
   AUTRE = 'AUTRE'
 }
 

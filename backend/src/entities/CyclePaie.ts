@@ -62,7 +62,8 @@ export class CyclePaie implements ICyclePaie {
 
   obtenirDureeEnJours(): number {
     const millisecondesParJour = 24 * 60 * 60 * 1000;
-    return Math.ceil((this.dateFin.getTime() - this.dateDebut.getTime()) / millisecondesParJour);
+    // Calcul correct incluant le jour de fin (+1)
+    return Math.ceil((this.dateFin.getTime() - this.dateDebut.getTime()) / millisecondesParJour) + 1;
   }
 
   genererNomAutomatique(): string {
