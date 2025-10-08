@@ -44,7 +44,7 @@ class KkiaPayService {
    * Gestion des callbacks de paiement
    */
   handlePaymentSuccess(response, onSuccess) {
-    console.log('✅ Paiement KkiaPay réussi:', response);
+    console.log(' Paiement KkiaPay réussi:', response);
     
     if (onSuccess) {
       onSuccess({
@@ -57,7 +57,7 @@ class KkiaPayService {
   }
 
   handlePaymentError(error, onFailed) {
-    console.error('❌ Erreur paiement KkiaPay:', error);
+    console.error('Erreur paiement KkiaPay:', error);
     
     if (onFailed) {
       onFailed({
@@ -68,7 +68,7 @@ class KkiaPayService {
   }
 
   handlePaymentPending(response, onPending) {
-    console.log('⏳ Paiement KkiaPay en attente:', response);
+    console.log(' Paiement KkiaPay en attente:', response);
     
     if (onPending) {
       onPending({
@@ -107,11 +107,11 @@ class KkiaPayService {
    */
   validateKeys() {
     if (!this.publicKey) {
-      console.error('❌ Clé publique KkiaPay manquante');
+      console.error(' Clé publique KkiaPay manquante');
       return false;
     }
     
-    console.log('✅ Clés KkiaPay configurées');
+    console.log(' Clés KkiaPay configurées');
     return true;
   }
 }

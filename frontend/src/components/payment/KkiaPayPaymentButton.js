@@ -17,7 +17,7 @@ const KkiaPayPaymentButton = ({
 }) => {
   const toast = useToast();
 
-  // Configuration du paiement
+
   const paymentConfig = kkiaPayService.getPaymentConfig({
     amount: employee.salaireNet,
     employeeName: employee.nomComplet,
